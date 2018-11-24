@@ -1,0 +1,66 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Utils.UnixProcess;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import org.apache.logging.log4j.LogManager;
+
+/**
+ *
+ * @author stepansydoruk
+ */
+public class ThreadedReader extends Thread {
+
+    private BufferedReader stream; // no need to buffer it
+    private String cmd;
+    private String streamName;
+    private boolean saveOutput = false;
+    private ArrayList<String> outBuf;
+
+    public ThreadedReader(InputStream in, String cmd, String stream) {
+        this.stream = new BufferedReader(new InputStreamReader(in));
+        this.cmd = cmd;
+        this.streamName = stream;
+        LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug("started reader for cmd: " + cmd + " stream:" + streamName);
+    }
+
+    ThreadedReader(InputStream in, String cmd, String stream, boolean saveStdOut) {
+        this(in, cmd, stream);
+        this.saveOutput = saveStdOut;
+        this.outBuf = new ArrayList<>();
+    }
+
+    public ArrayList<String> getOutBuf() {
+        return outBuf;
+    }
+
+    @Override
+    public void run() {
+        if (stream != null) {
+            String s;
+            try {
+                synchronized (this) {
+                    while ((s = stream.readLine()) != null) {
+                        LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug(cmd + "_" + streamName + ": " + s);
+                        if (saveOutput) {
+                            synchronized (outBuf) {
+                                outBuf.add(s);
+                            }
+                        }
+                    }
+                }
+            } catch (IOException ex) {
+                LogManager.getLogger(ThreadedReader.class.getPackage().getName()).error(ex);
+            }
+            LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug(cmd + "_" + streamName + ": exited");
+        }
+    }
+
+}
