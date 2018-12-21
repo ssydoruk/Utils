@@ -98,10 +98,11 @@ public class ExtProcess extends Thread {
     }
 
     public int waitFor() throws InterruptedException {
-        int ret = proc.waitFor();
+        exitCode = proc.waitFor();
         stdIn.interrupt();
         stdErr.interrupt();
-        return ret;
+        LogManager.getLogger().debug("Ret code: "+exitCode);
+        return exitCode;
     }
 
 

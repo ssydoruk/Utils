@@ -5,6 +5,7 @@
  */
 package Utils;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -93,4 +94,13 @@ public class Util {
         return false;
     }
 
+    private static final Pattern fileBaseName = Pattern.compile("([^\\/]+)$");
+
+    static public String stripDir(String fileName) {
+        Matcher m;
+        if ((m = fileBaseName.matcher(fileName)).find()) {
+            return m.group(0);
+        }
+        return fileName;
+    }        
 }
