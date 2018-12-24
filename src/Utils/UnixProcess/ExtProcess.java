@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 
 /**
@@ -30,7 +31,7 @@ public class ExtProcess extends Thread {
     public ExtProcess(List<String> tarParams) throws IOException {
         cmd = tarParams.get(0);
         pb = getProcessBuilder(tarParams);
-        LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug("Working directory :" + pb.directory());
+        LogManager.getLogger().trace("Working directory :" + pb.directory());
 
     }
 
@@ -77,6 +78,8 @@ public class ExtProcess extends Thread {
         stdErr.start();
     }
 
+    private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
+
     private static ProcessBuilder getProcessBuilder(List<String> sshParameters) throws IOException {
         if (LogManager.getLogger(ThreadedReader.class.getPackage().getName()).isDebugEnabled()) {
             StringBuilder l = new StringBuilder();
@@ -84,7 +87,17 @@ public class ExtProcess extends Thread {
                 if (l.length() > 0) {
                     l.append(" ");
                 }
+                boolean quotes = false;
+                if (sp.matcher(sshParameter).find()) {
+                    quotes = true;
+                }
+                if (quotes) {
+                    l.append("\"");
+                }
                 l.append(sshParameter);
+                if (quotes) {
+                    l.append("\"");
+                }
             }
             LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug("Executing: [" + l + "]");
         }
@@ -101,11 +114,9 @@ public class ExtProcess extends Thread {
         exitCode = proc.waitFor();
         stdIn.interrupt();
         stdErr.interrupt();
-        LogManager.getLogger().debug("Ret code: "+exitCode);
+        LogManager.getLogger().debug("Ret code: " + exitCode);
         return exitCode;
     }
-
-
 
     public int getExitCode() {
         return exitCode;
