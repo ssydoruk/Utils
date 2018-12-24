@@ -99,7 +99,7 @@ public class ExtProcess extends Thread {
                     l.append("\"");
                 }
             }
-            LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug("Executing: [" + l + "]");
+            LogManager.getLogger().info("Executing: [" + l + "]");
         }
 
         return new ProcessBuilder(sshParameters);
