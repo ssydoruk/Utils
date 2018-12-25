@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 
@@ -128,7 +126,7 @@ public class ExtProcess extends Thread {
             exitCode = waitFor();
             return getSTDOut();
         } catch (InterruptedException ex) {
-            Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
+                        LogManager.getLogger().log(org.apache.logging.log4j.Level.FATAL, ex);
         }
         return null;
     }
@@ -138,7 +136,7 @@ public class ExtProcess extends Thread {
         try {
             startProcess();
         } catch (IOException ex) {
-            Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
+                        LogManager.getLogger().log(org.apache.logging.log4j.Level.FATAL, ex);
         }
     }
 

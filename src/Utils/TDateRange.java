@@ -18,8 +18,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
@@ -169,8 +167,8 @@ public class TDateRange extends javax.swing.JPanel {
                 }
             }
         } catch (Exception ex) {
-            Logger.getLogger(TDateRange.class.getName()).log(Level.SEVERE,
-                    "Failed to apply Nimbus look and feel", ex);
+                                            LogManager.getLogger().log(org.apache.logging.log4j.Level.FATAL, "Failed to apply Nimbus look and feel", ex);
+
         }
         TDateRange tDateRange = new TDateRange();
         JFrame jf = new JFrame();
