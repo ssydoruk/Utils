@@ -79,7 +79,7 @@ public class ExtProcess extends Thread {
     private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
 
     private static ProcessBuilder getProcessBuilder(List<String> sshParameters) throws IOException {
-        if (LogManager.getLogger(ThreadedReader.class.getPackage().getName()).isDebugEnabled()) {
+        if (LogManager.getLogger().isDebugEnabled()) {
             StringBuilder l = new StringBuilder();
             for (String sshParameter : sshParameters) {
                 if (l.length() > 0) {

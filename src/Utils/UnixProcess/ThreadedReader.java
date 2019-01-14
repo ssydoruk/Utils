@@ -48,7 +48,7 @@ public class ThreadedReader extends Thread {
             try {
                 synchronized (this) {
                     while ((s = stream.readLine()) != null) {
-                        LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug(cmd + "_" + streamName + ": " + s);
+                        LogManager.getLogger().debug(cmd + "_" + streamName + ": " + s);
                         if (saveOutput) {
                             synchronized (outBuf) {
                                 outBuf.add(s);
@@ -57,9 +57,9 @@ public class ThreadedReader extends Thread {
                     }
                 }
             } catch (IOException ex) {
-                LogManager.getLogger(ThreadedReader.class.getPackage().getName()).error(ex);
+                LogManager.getLogger().error(ex);
             }
-            LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug(cmd + "_" + streamName + ": exited");
+            LogManager.getLogger().debug(cmd + "_" + streamName + ": exited");
         }
     }
 
