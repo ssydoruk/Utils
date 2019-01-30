@@ -23,6 +23,7 @@ public class ThreadedReader extends Thread {
     private String streamName;
     private boolean saveOutput = false;
     private ArrayList<String> outBuf;
+    private ExtProcess.IProcessOutputRead stdinReadProc;
 
     public ThreadedReader(InputStream in, String cmd, String stream) {
         this.stream = new BufferedReader(new InputStreamReader(in));
@@ -54,6 +55,8 @@ public class ThreadedReader extends Thread {
                                 outBuf.add(s);
                             }
                         }
+                        if(stdinReadProc!=null)
+                            stdinReadProc.lineRead(s);
                     }
                 }
             } catch (IOException ex) {
@@ -61,6 +64,11 @@ public class ThreadedReader extends Thread {
             }
             LogManager.getLogger().debug(cmd + "_" + streamName + ": exited");
         }
+    }
+
+    void setstdinReadProc(ExtProcess.IProcessOutputRead stdinReadProc) {
+        this.stdinReadProc = stdinReadProc;
+
     }
 
 }
