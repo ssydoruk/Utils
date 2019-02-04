@@ -5,10 +5,13 @@
  */
 package Utils.UnixProcess;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 
@@ -114,10 +117,18 @@ public class ExtProcess extends Thread {
         return proc.getInputStream();
     }
     
-    public int waitFor() throws InterruptedException {
-        exitCode = proc.waitFor();
+    private void terminateChildren(){
+        closeStream(proc.getInputStream());
+        closeStream(proc.getErrorStream());
+        closeStream(proc.getOutputStream());
         stdIn.interrupt();
         stdErr.interrupt();
+        
+    }
+    
+    public int waitFor() throws InterruptedException {
+        exitCode = proc.waitFor();
+        terminateChildren();
         LogManager.getLogger().debug("Ret code: " + exitCode);
         return exitCode;
     }
@@ -167,6 +178,20 @@ public class ExtProcess extends Thread {
     
     public void setStdinReadProc(IProcessOutputRead stdinReadProc) {
         this.stdinReadProc = stdinReadProc;
+    }
+
+    private void closeStream(Closeable stream) {
+        try {
+            stream.close();
+        } catch (IOException ex) {
+//            Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public void cancel() {
+        terminateChildren();
+        interrupt();        
     }
     
     public static interface IProcessOutputRead {
