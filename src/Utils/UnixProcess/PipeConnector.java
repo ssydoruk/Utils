@@ -7,6 +7,7 @@ package Utils.UnixProcess;
 
 
 import java.io.*;
+import org.apache.logging.log4j.LogManager;
  
 /**
  * Copy the output stream from one process in a pipeline to the input stream of the next process
@@ -53,16 +54,17 @@ public class PipeConnector implements Runnable {
         _process2Input.flush();
       }
       catch (IOException error) {
-//          GetLogs.logger.error("-1-", error);
+          LogManager.getLogger().error("-1-", error);
         break;
       }
-//           GetLogs.logger.info("-done-");
+           LogManager.getLogger().info("-done-");
    }
  
     try {
       _process1Output.close();
     }
-    catch (IOException error) {}
+    catch (IOException error) {
+    }
     try {
       _process2Input.close();
     }
