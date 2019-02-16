@@ -16,7 +16,7 @@ import org.apache.logging.log4j.LogManager;
  *
  * @author stepansydoruk
  */
-public class ThreadedReader extends Thread {
+public class ThreadedReader implements Runnable {
 
     private BufferedReader stream; // no need to buffer it
     private String cmd;

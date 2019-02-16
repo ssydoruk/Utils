@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -19,31 +22,33 @@ import org.apache.logging.log4j.LogManager;
  *
  * @author stepansydoruk
  */
-public class ExtProcess extends Thread {
-    
+public class ExtProcess {
+
     private ProcessBuilder pb;
     String cmd;
-    
+
     Process proc = null;
     private boolean saveStdErr = false;
     private boolean saveStdOut = false;
     private int exitCode;
-    
+    private Future<?> stdInFuture;
+    private Future<?> stdErrFuture;
+
     public ExtProcess(List<String> tarParams) throws IOException {
         cmd = tarParams.get(0);
         pb = getProcessBuilder(tarParams);
         LogManager.getLogger().trace("Working directory :" + pb.directory());
-        
+
     }
-    
+
     public ExtProcess(ArrayList<String> tarParams, ExtProcess procSSH) throws IOException {
         this(tarParams);
-        
+
         PipeConnector pc = new PipeConnector(procSSH.getInputStream(), proc.getOutputStream());
         pc.run();
-        
+
     }
-    
+
     public ArrayList<String> getSTDOut() {
         synchronized (stdIn) {
             if (stdIn != null) {
@@ -53,7 +58,7 @@ public class ExtProcess extends Thread {
             }
         }
     }
-    
+
     public ArrayList<String> getErrBuf() {
         synchronized (stdErr) {
             if (stdErr != null) {
@@ -63,30 +68,32 @@ public class ExtProcess extends Thread {
             }
         }
     }
-    
+
     public void startProcess() throws IOException {
         startProcess(false, false);
     }
-    
+
     ThreadedReader stdIn;
     ThreadedReader stdErr;
-    
+
+    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+
     public void startProcess(boolean saveStdOut, boolean saveStdErr) throws IOException {
         proc = pb.start();
         stdIn = new ThreadedReader((proc.getInputStream()), cmd, "in", saveStdOut);
         if (stdinReadProc != null) {
             stdIn.setstdinReadProc(stdinReadProc);
         }
-        stdIn.start();
+        stdInFuture = executor.submit(stdIn);
         stdErr = new ThreadedReader((proc.getErrorStream()), cmd, "err", saveStdErr);
         if (stderrReadProc != null) {
             stdErr.setstdinReadProc(stderrReadProc);
         }
-        stdErr.start();
+        stdErrFuture = executor.submit(stdErr);
     }
-    
+
     private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
-    
+
     private static ProcessBuilder getProcessBuilder(List<String> sshParameters) throws IOException {
         if (LogManager.getLogger().isDebugEnabled()) {
             StringBuilder l = new StringBuilder();
@@ -108,37 +115,36 @@ public class ExtProcess extends Thread {
             }
             LogManager.getLogger().info("Executing: [" + l + "]");
         }
-        
+
         return new ProcessBuilder(sshParameters);
-        
+
     }
-    
+
     private InputStream getInputStream() {
         return proc.getInputStream();
     }
-    
-    private void terminateChildren(){
+
+    private void terminateChildren() {
         closeStream(proc.getInputStream());
         closeStream(proc.getErrorStream());
         closeStream(proc.getOutputStream());
-        stdIn.interrupt();
-        stdErr.interrupt();
-        
+        stdInFuture.cancel(true);
+        stdErrFuture.cancel(true);
     }
-    
+
     public int waitFor() throws InterruptedException {
         exitCode = proc.waitFor();
         terminateChildren();
         LogManager.getLogger().debug("Ret code: " + exitCode);
         return exitCode;
     }
-    
+
     public int getExitCode() {
         return exitCode;
     }
-    
+
     public List<String> execOuts() {
-        
+
         try {
             exitCode = waitFor();
             return getSTDOut();
@@ -147,35 +153,22 @@ public class ExtProcess extends Thread {
         }
         return null;
     }
-    
-    @Override
-    public void run() {
-        try {
-            startProcess();
-        } catch (IOException ex) {
-            LogManager.getLogger().log(org.apache.logging.log4j.Level.FATAL, ex);
-        }
-    }
-    
-    public void startThread() {
-        start();
-    }
-    
+
     private IProcessOutputRead stderrReadProc;
     private IProcessOutputRead stdinReadProc;
-    
+
     public IProcessOutputRead getStderrReadProc() {
         return stderrReadProc;
     }
-    
+
     public void setStderrReadProc(IProcessOutputRead stderrReadProc) {
         this.stderrReadProc = stderrReadProc;
     }
-    
+
     public IProcessOutputRead getStdinReadProc() {
         return stdinReadProc;
     }
-    
+
     public void setStdinReadProc(IProcessOutputRead stdinReadProc) {
         this.stdinReadProc = stdinReadProc;
     }
@@ -192,12 +185,11 @@ public class ExtProcess extends Thread {
     public void cancel() {
         proc.destroyForcibly();
         terminateChildren();
-        interrupt();        
     }
-    
+
     public static interface IProcessOutputRead {
-        
+
         void lineRead(String s);
     };
-    
+
 }
