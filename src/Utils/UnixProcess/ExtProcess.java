@@ -190,6 +190,7 @@ public class ExtProcess extends Thread {
     }
 
     public void cancel() {
+        proc.destroyForcibly();
         terminateChildren();
         interrupt();        
     }
