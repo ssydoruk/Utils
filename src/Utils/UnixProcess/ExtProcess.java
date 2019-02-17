@@ -33,6 +33,8 @@ public class ExtProcess {
     private int exitCode;
     private Future<?> stdInFuture;
     private Future<?> stdErrFuture;
+    private ExtProcess otherProc;
+    private Future<?> pipeFuture;
 
     public ExtProcess(List<String> tarParams) throws IOException {
         cmd = tarParams.get(0);
@@ -43,9 +45,7 @@ public class ExtProcess {
 
     public ExtProcess(ArrayList<String> tarParams, ExtProcess procSSH) throws IOException {
         this(tarParams);
-
-        PipeConnector pc = new PipeConnector(procSSH.getInputStream(), proc.getOutputStream());
-        pc.run();
+        otherProc = procSSH;
 
     }
 
@@ -80,16 +80,22 @@ public class ExtProcess {
 
     public void startProcess(boolean saveStdOut, boolean saveStdErr) throws IOException {
         proc = pb.start();
-        stdIn = new ThreadedReader((proc.getInputStream()), cmd, "in", saveStdOut);
-        if (stdinReadProc != null) {
-            stdIn.setstdinReadProc(stdinReadProc);
+        if (otherProc != null) {
+            PipeConnector pc = new PipeConnector(otherProc.getInputStream(), proc.getOutputStream());
+            pipeFuture = executor.submit(pc);
+        } else {
+            stdIn = new ThreadedReader((proc.getInputStream()), cmd, "in", saveStdOut);
+            if (stdinReadProc != null) {
+                stdIn.setstdinReadProc(stdinReadProc);
+            }
+            stdInFuture = executor.submit(stdIn);
         }
-        stdInFuture = executor.submit(stdIn);
         stdErr = new ThreadedReader((proc.getErrorStream()), cmd, "err", saveStdErr);
         if (stderrReadProc != null) {
             stdErr.setstdinReadProc(stderrReadProc);
         }
         stdErrFuture = executor.submit(stdErr);
+
     }
 
     private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
@@ -130,6 +136,9 @@ public class ExtProcess {
         closeStream(proc.getOutputStream());
         stdInFuture.cancel(true);
         stdErrFuture.cancel(true);
+        if (pipeFuture != null) {
+            pipeFuture.cancel(true);
+        }
     }
 
     public int waitFor() throws InterruptedException {
