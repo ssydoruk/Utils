@@ -143,6 +143,7 @@ public class ExtProcess {
 
     public int waitFor() throws InterruptedException {
         exitCode = proc.waitFor();
+        LogManager.getLogger().debug("Main process terminated with code "+exitCode);
         terminateChildren();
         LogManager.getLogger().debug("Ret code: " + exitCode);
         return exitCode;
