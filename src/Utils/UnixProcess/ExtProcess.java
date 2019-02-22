@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -130,21 +131,36 @@ public class ExtProcess {
         return proc.getInputStream();
     }
 
-    private void terminateChildren() {
+    private void closeStreams() {
         closeStream(proc.getInputStream());
         closeStream(proc.getErrorStream());
         closeStream(proc.getOutputStream());
+
+    }
+
+    private void terminateChildren() {
         stdInFuture.cancel(true);
         stdErrFuture.cancel(true);
         if (pipeFuture != null) {
             pipeFuture.cancel(true);
         }
+        closeStreams();
     }
 
     public int waitFor() throws InterruptedException {
         exitCode = proc.waitFor();
-        LogManager.getLogger().debug("Main process terminated with code "+exitCode);
-        terminateChildren();
+        LogManager.getLogger().debug("Main process terminated with code " + exitCode);
+        try {
+            stdErrFuture.get();
+        } catch (ExecutionException ex) {
+            Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            stdInFuture.get();
+        } catch (ExecutionException ex) {
+            Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        closeStreams();
         LogManager.getLogger().debug("Ret code: " + exitCode);
         return exitCode;
     }
