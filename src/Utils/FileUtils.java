@@ -6,6 +6,7 @@
 package Utils;
 
 import java.io.File;
+import org.apache.logging.log4j.LogManager;
 
 /**
  *
@@ -23,5 +24,15 @@ public class FileUtils {
         }
 
         return result;
+    }
+
+    public static void mkDir(String directory_name) {
+        LogManager.getLogger().debug("mkdir [" + directory_name + "]");
+        File directory = new File(directory_name).getAbsoluteFile();
+        if (!directory.exists()) {
+            boolean mkdirs = directory.mkdirs();
+            LogManager.getLogger().debug("directory " + " created: " + mkdirs);
+        }
+
     }
 }
