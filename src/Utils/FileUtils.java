@@ -14,6 +14,8 @@ import org.apache.logging.log4j.LogManager;
  */
 public class FileUtils {
 
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
+
     public static boolean setCurrentDirectory(String directory_name) {
         boolean result = false;  // Boolean indicating whether directory was set
         File directory;       // Desired current working directory
@@ -27,11 +29,11 @@ public class FileUtils {
     }
 
     public static void mkDir(String directory_name) {
-        LogManager.getLogger().debug("mkdir [" + directory_name + "]");
+        logger.debug("mkdir [" + directory_name + "]");
         File directory = new File(directory_name).getAbsoluteFile();
         if (!directory.exists()) {
             boolean mkdirs = directory.mkdirs();
-            LogManager.getLogger().debug("directory " + " created: " + mkdirs);
+            logger.debug("directory " + " created: " + mkdirs);
         }
 
     }

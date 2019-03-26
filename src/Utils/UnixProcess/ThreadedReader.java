@@ -41,6 +41,10 @@ public class ThreadedReader implements Runnable {
     public ArrayList<String> getOutBuf() {
         return outBuf;
     }
+    
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
+
+
 
     @Override
     public void run() {
@@ -49,7 +53,7 @@ public class ThreadedReader implements Runnable {
             try {
                 synchronized (this) {
                     while ((s = stream.readLine()) != null) {
-                        LogManager.getLogger().debug(cmd + "_" + streamName + ": " + s);
+                        logger.debug(cmd + "_" + streamName + ": " + s);
                         if (saveOutput) {
                             synchronized (outBuf) {
                                 outBuf.add(s);
@@ -60,9 +64,9 @@ public class ThreadedReader implements Runnable {
                     }
                 }
             } catch (IOException ex) {
-                LogManager.getLogger().error(ex);
+                logger.error(ex);
             }
-            LogManager.getLogger().debug(cmd + "_" + streamName + ": exited");
+            logger.debug(cmd + "_" + streamName + ": exited");
         }
     }
 

@@ -57,8 +57,10 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
     /*
 	 *  Adjust the widths of all the columns in the table
      */
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
+
     public void adjustColumns() {
-        LogManager.getLogger().debug("Adjust columns ");
+        logger.debug("Adjust columns ");
         table.setVisible(false);
         TableColumnModel tcm = table.getColumnModel();
 
@@ -250,7 +252,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 
             model = (TableModel) e.getNewValue();
             model.addTableModelListener(this);
-            LogManager.getLogger().debug("not adjusting columns for now");
+            logger.debug("not adjusting columns for now");
 
 //            adjustColumns();
         }

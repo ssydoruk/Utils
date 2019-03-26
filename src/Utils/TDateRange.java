@@ -167,7 +167,7 @@ public class TDateRange extends javax.swing.JPanel {
                 }
             }
         } catch (Exception ex) {
-                                            LogManager.getLogger().log(org.apache.logging.log4j.Level.FATAL, "Failed to apply Nimbus look and feel", ex);
+            logger.log(org.apache.logging.log4j.Level.FATAL, "Failed to apply Nimbus look and feel", ex);
 
         }
         TDateRange tDateRange = new TDateRange();
@@ -178,6 +178,7 @@ public class TDateRange extends javax.swing.JPanel {
         jf.setVisible(true);
         jf.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
 
     public UTCTimeRange getTimeRange() {
         if (dtFrom.isEnabled() && dtTo.isEnabled()) {
@@ -190,7 +191,6 @@ public class TDateRange extends javax.swing.JPanel {
         }
         return null;
     }
-    
 
     public UTCTimeRange getTimeRangeAlways() {
         UTCTimeRange range = new UTCTimeRange();
@@ -240,7 +240,7 @@ public class TDateRange extends javax.swing.JPanel {
             dtTo.getDatePicker().clear();
             dtTo.getTimePicker().clear();
         } else {
-            LogManager.getLogger().debug("setTimeRange " + timeRange.getStart() + " to " + timeRange.getEnd());
+            logger.debug("setTimeRange " + timeRange.getStart() + " to " + timeRange.getEnd());
             setTimeRange(dtFrom, timeRange.getStart());
             setTimeRange(dtTo, timeRange.getEnd());
 
@@ -252,7 +252,7 @@ public class TDateRange extends javax.swing.JPanel {
     }
 
     static private Long getUtcTime(LocalDateTime dateTime, ZoneId _zoneID, int adjustment) {
-        LogManager.getLogger().debug("getUtcTime " + dateTime);
+        logger.debug("getUtcTime " + dateTime);
         return (dateTime.toInstant(_zoneID.getRules().getOffset(dateTime)).getEpochSecond() + adjustment) * 1000;
 
     }

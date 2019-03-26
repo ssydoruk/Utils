@@ -5,6 +5,7 @@
  */
 package Utils;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +48,7 @@ public class Util {
         return def;
 
     }
+
     public static Long intOrDef(String s, Long def) {
         if (s != null) {
             try {
@@ -68,8 +70,8 @@ public class Util {
         return def;
 
     }
-    
-        static public boolean matchFound(String val, Pattern pt, String search, boolean matchWholeWordSelected) {
+
+    static public boolean matchFound(String val, Pattern pt, String search, boolean matchWholeWordSelected) {
 //        logger.debug("search cell:[" + val + "] [" + search + "] " + matchWholeWordSelected + " " + " " + pt + ": [" + val);
         if (val != null && !val.isEmpty()) {
 //                            inquirer.inquirer.logger.debug("search cell:" + search + " " + matchWholeWordSelected + " " + " " +pt + ": [" + val);
@@ -97,10 +99,23 @@ public class Util {
     private static final Pattern fileBaseName = Pattern.compile("([^\\/]+)$");
 
     static public String stripDir(String fileName) {
-        Matcher m;
-        if ((m = fileBaseName.matcher(fileName)).find()) {
-            return m.group(0);
-        }
-        return fileName;
-    }        
+        return org.apache.commons.io.FilenameUtils.normalizeNoEndSeparator(fileName);
+                
+//        Matcher m;
+//        if ((m = fileBaseName.matcher(fileName)).find()) {
+//            return m.group(0);
+//        }
+//        return fileName;
+    }
+
+    public static ArrayList<String> rSyncAddClause(String fileName) {
+        return rSyncAddClause(fileName, "/*");
+    }
+
+    public static ArrayList<String> rSyncAddClause(String fileName, String prefix) {
+        ArrayList<String> ret = new ArrayList<String>();
+        ret.add("-f");//--filter
+        ret.add("+ " + ((prefix != null) ? prefix : "") + fileName);
+        return ret;
+    }
 }

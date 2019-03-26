@@ -36,11 +36,12 @@ public class ExtProcess {
     private Future<?> stdErrFuture;
     private ExtProcess otherProc;
     private Future<?> pipeFuture;
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
 
     public ExtProcess(List<String> tarParams) throws IOException {
         cmd = tarParams.get(0);
         pb = getProcessBuilder(tarParams);
-        LogManager.getLogger().trace("Working directory :" + pb.directory());
+        logger.trace("Working directory :" + pb.directory());
 
     }
 
@@ -102,7 +103,7 @@ public class ExtProcess {
     private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
 
     private static ProcessBuilder getProcessBuilder(List<String> sshParameters) throws IOException {
-        if (LogManager.getLogger().isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             StringBuilder l = new StringBuilder();
             for (String sshParameter : sshParameters) {
                 if (l.length() > 0) {
@@ -120,7 +121,7 @@ public class ExtProcess {
                     l.append("\"");
                 }
             }
-            LogManager.getLogger().info("Executing: [" + l + "]");
+            logger.debug("Executing: [" + l + "]");
         }
 
         return new ProcessBuilder(sshParameters);
@@ -149,7 +150,7 @@ public class ExtProcess {
 
     public int waitFor() throws InterruptedException {
         exitCode = proc.waitFor();
-        LogManager.getLogger().debug("Main process terminated with code " + exitCode);
+        logger.debug("Main process terminated with code " + exitCode);
         try {
             stdErrFuture.get();
         } catch (ExecutionException ex) {
@@ -161,7 +162,7 @@ public class ExtProcess {
             Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
         }
         closeStreams();
-        LogManager.getLogger().debug("Ret code: " + exitCode);
+        logger.debug("Ret code: " + exitCode);
         return exitCode;
     }
 
@@ -175,7 +176,7 @@ public class ExtProcess {
             exitCode = waitFor();
             return getSTDOut();
         } catch (InterruptedException ex) {
-            LogManager.getLogger().log(org.apache.logging.log4j.Level.FATAL, ex);
+            logger.log(org.apache.logging.log4j.Level.FATAL, ex);
         }
         return null;
     }
