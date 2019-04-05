@@ -26,7 +26,11 @@ import org.apache.logging.log4j.LogManager;
 public class ExtProcess {
 
     private ProcessBuilder pb;
-    String cmd;
+    private String cmd;
+
+    public String getCmd() {
+        return cmd;
+    }
 
     Process proc = null;
     private boolean saveStdErr = false;
