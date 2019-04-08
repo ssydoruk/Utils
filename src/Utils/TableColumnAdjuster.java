@@ -7,6 +7,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 
 /*
@@ -24,6 +25,26 @@ import org.apache.logging.log4j.LogManager;
  *  of RESIZE_ALL_COLUMNS will work the best.
  */
 public class TableColumnAdjuster implements PropertyChangeListener, TableModelListener {
+
+    private boolean resizeColumns=true;
+
+    /**
+     * Get the value of resizeColumns
+     *
+     * @return the value of resizeColumns
+     */
+    public boolean isResizeColumns() {
+        return resizeColumns;
+    }
+
+    /**
+     * Set the value of resizeColumns
+     *
+     * @param resizeColumns new value of resizeColumns
+     */
+    public void setResizeColumns(boolean resizeColumns) {
+        this.resizeColumns = resizeColumns;
+    }
 
     private JTable table;
     private int spacing;
@@ -261,39 +282,43 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 //  Implement the TableModelListener
 //
 
+    @Override
     public void tableChanged(TableModelEvent e) {
+
         if (!isColumnDataIncluded) {
             return;
         }
+        if (isResizeColumns() ) {
+//            logger.debug(ExceptionUtils.getStackTrace(new Throwable()));
+            //  Needed when table is sorted.
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    //  A cell has been updated
 
-        //  Needed when table is sorted.
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                //  A cell has been updated
+                    int column = table.convertColumnIndexToView(e.getColumn());
 
-                int column = table.convertColumnIndexToView(e.getColumn());
+                    if (e.getType() == TableModelEvent.UPDATE && column != -1) {
+                        //  Only need to worry about an increase in width for this cell
 
-                if (e.getType() == TableModelEvent.UPDATE && column != -1) {
-                    //  Only need to worry about an increase in width for this cell
+                        if (isOnlyAdjustLarger) {
+                            int row = e.getFirstRow();
+                            TableColumn tableColumn = table.getColumnModel().getColumn(column);
 
-                    if (isOnlyAdjustLarger) {
-                        int row = e.getFirstRow();
-                        TableColumn tableColumn = table.getColumnModel().getColumn(column);
-
-                        if (tableColumn.getResizable()) {
-                            int width = getCellDataWidth(row, column);
-                            updateTableColumn(column, width);
+                            if (tableColumn.getResizable()) {
+                                int width = getCellDataWidth(row, column);
+                                updateTableColumn(column, width);
+                            }
+                        } //	Could be an increase of decrease so check all rows
+                        else {
+                            adjustColumn(column);
                         }
-                    } //	Could be an increase of decrease so check all rows
+                    } //  The update affected more than one column so adjust all columns
                     else {
-                        adjustColumn(column);
+                        adjustColumns();
                     }
-                } //  The update affected more than one column so adjust all columns
-                else {
-                    adjustColumns();
                 }
-            }
-        });
+            });
+        }
     }
 
     /*
