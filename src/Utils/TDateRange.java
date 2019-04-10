@@ -5,6 +5,8 @@
  */
 package Utils;
 
+import static Utils.UTCTimeRange.getUtcTime;
+import static Utils.UTCTimeRange.zoneId;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import com.github.lgooddatepicker.components.DateTimePicker;
 import com.github.lgooddatepicker.components.TimePickerSettings;
@@ -209,7 +211,6 @@ public class TDateRange extends javax.swing.JPanel {
         return range;
     }
 
-    public static final ZoneId zoneId = ZoneId.systemDefault();
 
     public static long getUTCTime(DateTimePicker dtp, int adjustment) {
         return getUtcTime(dtp.getDateTimePermissive(), zoneId, adjustment);
@@ -247,15 +248,7 @@ public class TDateRange extends javax.swing.JPanel {
         }
     }
 
-    static public long getUtcTime(LocalDateTime dateTime, int adjustment) {
-        return getUtcTime(dateTime, zoneId, adjustment);
-    }
 
-    static private Long getUtcTime(LocalDateTime dateTime, ZoneId _zoneID, int adjustment) {
-        logger.debug("getUtcTime " + dateTime);
-        return (dateTime.toInstant(_zoneID.getRules().getOffset(dateTime)).getEpochSecond() + adjustment) * 1000;
-
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
