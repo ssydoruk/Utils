@@ -5,6 +5,7 @@
  */
 package Utils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +45,22 @@ public class UTCTimeRange extends Pair<Long, Long> {
 
     public Long getEnd() {
         return getValue();
+    }
+
+    private String getLocalDateTime(long l) {
+        if (l == 0) {
+            return "[]";
+        } else {
+           return LocalDateTime.ofInstant(Instant.ofEpochMilli(l), zoneId).toString();
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder ret = new StringBuilder();
+        ret.append("from: ").append(getLocalDateTime(getStart())).append(" to: ")
+                .append(getLocalDateTime(getEnd()));
+        return ret.toString();
     }
 
     static public long getUtcTime(LocalDateTime dateTime, int adjustment) {
