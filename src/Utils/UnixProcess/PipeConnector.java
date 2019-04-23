@@ -63,7 +63,7 @@ public class PipeConnector implements Runnable {
                 logger.error("-1-", error);
                 break;
             }
-            logger.info("-done-");
+            logger.trace("-done-");
         }
 
         try {

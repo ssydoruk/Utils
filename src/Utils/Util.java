@@ -100,7 +100,7 @@ public class Util {
 
     static public String stripDir(String fileName) {
         return org.apache.commons.io.FilenameUtils.normalizeNoEndSeparator(fileName);
-                
+
 //        Matcher m;
 //        if ((m = fileBaseName.matcher(fileName)).find()) {
 //            return m.group(0);
@@ -117,5 +117,37 @@ public class Util {
         ret.add("-f");//--filter
         ret.add("+ " + ((prefix != null) ? prefix : "") + fileName);
         return ret;
+    }
+
+    private static final char quoteChars[] = {'\'', '"', ' '};
+
+    private static boolean charIn(char c, char[] quoteChars) {
+        int i = 0;
+        for (; i < quoteChars.length; i++) {
+            if (quoteChars[i] == c) {
+                break;
+            }
+        }
+        return i < quoteChars.length;
+    }
+
+    public static String StripQuotes(String UUId) {
+        if (UUId != null && !UUId.isEmpty()) {
+            int startI = 0;
+            char[] toCharArray = UUId.toCharArray();
+            for (int j = 0; j < toCharArray.length; j++) {
+                if (!charIn(toCharArray[j], quoteChars)) {
+                    startI = j;
+                    break;
+                }
+            }
+            for (int j = toCharArray.length - 1; j >= 0; j--) {
+                if (!charIn(toCharArray[j], quoteChars)) {
+                    return UUId.substring(startI, j + 1);
+                }
+            }
+        }
+
+        return UUId;
     }
 }
