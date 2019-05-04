@@ -59,7 +59,7 @@ public class ScreenInfo {
 
     public static void CenterWindow(Window aThis) {
         int screenID = ScreenInfo.getScreenID(aThis);
-//        inquirer.logger.info("Centering " + aThis.toString() + "; screen: " + screenID);
+//        System.out.println("Centering " + aThis.toString() + "; screen: " + screenID);
 //        aThis.setLocationRelativeTo(null);
         aThis.setLocation((ScreenInfo.getScreenWidth(screenID) - aThis.getWidth()) / 2,
                 (ScreenInfo.getScreenHeight(screenID) - aThis.getHeight()) / 2);
