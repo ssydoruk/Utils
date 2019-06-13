@@ -247,7 +247,7 @@ public class ValuesEditor extends StandardDialog {
 
     private EditValuesDialog getEditDialog() {
         if (editDialog == null) {
-            editDialog = new EditValuesDialog(tab.getColumnModel());
+            editDialog = new EditValuesDialog(this, tab.getColumnModel());
         }
         return editDialog;
     }
@@ -383,7 +383,8 @@ public class ValuesEditor extends StandardDialog {
         ArrayList col;
         ArrayList<EnterPanel> pan;
 
-        private EditValuesDialog(TableColumnModel columnModel) {
+        private EditValuesDialog(Window parent, TableColumnModel columnModel) {
+            super(parent);
             col = new ArrayList<>(columnModel.getColumnCount());
             pan = new ArrayList<>(columnModel.getColumnCount());
             for (int i = 0; i < columnModel.getColumnCount(); i++) {

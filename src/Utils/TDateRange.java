@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
@@ -96,6 +97,7 @@ public class TDateRange extends javax.swing.JPanel {
     }
 
     public TDateRange(boolean showSeconds) {
+        super();
         initComponents();
         initDates(showSeconds);
 
@@ -103,7 +105,8 @@ public class TDateRange extends javax.swing.JPanel {
 
     private void initDates(boolean showSeconds) {
         String dateFormat = (showSeconds) ? "HH:mm:ss" : "HH:mm";
-        setLayout(new FlowLayout());
+//        setLayout(new FlowLayout());
+        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
         jlFrom = new JLabel("From");
         add(jlFrom);
@@ -133,8 +136,10 @@ public class TDateRange extends javax.swing.JPanel {
         TimePickerSettings timeSettings = dateTimePicker1.getTimePicker().getSettings();
         timeSettings.setFormatForDisplayTime(PickerUtilities.createFormatterFromPatternString(
                 dateFormat, timeSettings.getLocale()));
+        timeSettings.setInitialTimeToNow();
         timeSettings.setFormatForMenuTimes(PickerUtilities.createFormatterFromPatternString(
                 dateFormat, timeSettings.getLocale()));
+        timeSettings.setInitialTimeToNow();
         return dateTimePicker1;
     }
 
