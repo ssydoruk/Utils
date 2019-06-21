@@ -73,7 +73,7 @@ public class UTCTimeRange extends Pair<Long, Long> {
     }
 
     static public Long getUtcTime(LocalDateTime dateTime, ZoneId _zoneID, int adjustment) {
-        logger.debug("getUtcTime " + dateTime);
+        logger.trace("getUtcTime " + dateTime);
         return (dateTime.toInstant(_zoneID.getRules().getOffset(dateTime)).getEpochSecond() + adjustment) * 1000;
 
     }
