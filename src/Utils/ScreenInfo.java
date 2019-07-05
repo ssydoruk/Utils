@@ -63,7 +63,6 @@ public class ScreenInfo {
 //        aThis.setLocationRelativeTo(null);
         aThis.setLocation((ScreenInfo.getScreenWidth(screenID) - aThis.getWidth()) / 2,
                 (ScreenInfo.getScreenHeight(screenID) - aThis.getHeight()) / 2);
-
     }
 
     public static void CenterWindowMaxWidth(JFrame aThis) {
@@ -146,5 +145,18 @@ public class ScreenInfo {
         }
 
         frm.setVisible(b);
+    }
+
+    public static void refitMainToMsg(JFrame rptForm, JFrame fullMsgWindow) {
+        Rectangle windowScreenBounds = getWindowScreenBounds(rptForm);
+        rptForm.setLocation(windowScreenBounds.x,
+                windowScreenBounds.y + windowScreenBounds.height / 3);
+        rptForm.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
+
+        fullMsgWindow.setLocationRelativeTo(rptForm);
+        fullMsgWindow.setLocation(windowScreenBounds.x,
+                windowScreenBounds.y);
+        fullMsgWindow.setSize(windowScreenBounds.width, windowScreenBounds.height  / 3);
+
     }
 }
