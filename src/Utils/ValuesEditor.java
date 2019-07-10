@@ -93,6 +93,7 @@ public class ValuesEditor extends StandardDialog {
         this.tab = new JTable();
         this.selectedFormat = selectedFormat;
         tca = new TableColumnAdjuster(tab);
+        tca.setColumnHeaderIncluded(true);
 
     }
 
