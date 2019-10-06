@@ -146,6 +146,15 @@ public class ScreenInfo {
 
         frm.setVisible(b);
     }
+    
+        public static void windowOccupyTopThird(Window rptForm) {
+        Rectangle windowScreenBounds = getWindowScreenBounds(rptForm);
+        rptForm.setLocation(windowScreenBounds.x,
+                windowScreenBounds.y);
+        rptForm.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
+
+    }
+
 
     public static void refitMainToMsg(JFrame rptForm, JFrame fullMsgWindow) {
         Rectangle windowScreenBounds = getWindowScreenBounds(rptForm);
