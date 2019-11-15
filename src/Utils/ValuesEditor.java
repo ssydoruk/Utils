@@ -51,6 +51,7 @@ public class ValuesEditor extends StandardDialog {
     private TableColumnAdjuster tca;
     private JButton upButton;
     private JButton downButton;
+    private boolean dataChanged;
 
     public int getCloseCause() {
         return closeCause;
@@ -92,9 +93,14 @@ public class ValuesEditor extends StandardDialog {
         this.selectedFormat = selectedFormat;
         tca = new TableColumnAdjuster(tab);
         tca.setColumnHeaderIncluded(true);
+        dataChanged = false;
 
     }
 
+    /**
+     *
+     * @return true if data was changed
+     */
     public boolean doShow() {
         setModal(true);
 
@@ -115,10 +121,11 @@ public class ValuesEditor extends StandardDialog {
 
 //            ScreenInfo.CenterWindow(this);
         this.setLocationRelativeTo(getParent());
+        dataChanged = false;
         setVisible(
                 true);
-        logger.info("Utils: "+getDialogResult());
-        return getDialogResult() == StandardDialog.RESULT_AFFIRMED;
+        logger.info("Utils: " + getDialogResult());
+        return dataChanged;
     }
 
     @Override
@@ -255,6 +262,7 @@ public class ValuesEditor extends StandardDialog {
         ArrayList<String> vals;
         if ((vals = getEditDialog().doShow(null)) != null) {
             infoTableModel.addRow(vals.toArray(new String[vals.size()]));
+            dataChanged=true;
         }
 
     }
@@ -294,6 +302,7 @@ public class ValuesEditor extends StandardDialog {
 
         model.moveRow(rows[0], rows[rows.length - 1], destination);
         tab.setRowSelectionInterval(rows[0] + by, rows[rows.length - 1] + by);
+        dataChanged = true;
     }
 
     private void upPressed(ActionEvent e) {
@@ -317,6 +326,7 @@ public class ValuesEditor extends StandardDialog {
                 for (int i = 0; i < vals.size(); i++) {
                     infoTableModel.setValueAt(vals.get(i), selectedRow, i);
                 }
+                dataChanged = true;
             }
         }
     }
@@ -334,6 +344,8 @@ public class ValuesEditor extends StandardDialog {
             if (JOptionPane.showConfirmDialog(this, "Are you sure you want to delete\n" + s, "Please confirm", YES_NO_OPTION, QUESTION_MESSAGE)
                     == JOptionPane.YES_OPTION) {
                 infoTableModel.removeRow(selectedRow);
+                dataChanged = true;
+
             }
 
         }
@@ -439,7 +451,7 @@ public class ValuesEditor extends StandardDialog {
             private JPanel enterPanel;
 
             public String getText() {
-                return tbValue.getSelectedItem().toString();
+                return (tbValue != null) ? (tbValue.getSelectedItem() != null) ? tbValue.getSelectedItem().toString() : null : null;
             }
 
             public void setText(String txt) {
