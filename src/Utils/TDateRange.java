@@ -31,7 +31,7 @@ import org.apache.logging.log4j.LogManager;
  * @author Stepan
  */
 public class TDateRange extends javax.swing.JPanel {
-    
+
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled); //To change body of generated methods, choose Tools | Templates.
@@ -43,33 +43,33 @@ public class TDateRange extends javax.swing.JPanel {
         jlFrom.setEnabled(enabled);
         jlTo.setEnabled(enabled);
     }
-    
+
     public void enableFrom(boolean enabled) {
         dtFrom.setEnabled(enabled);
         jlFrom.setEnabled(enabled);
     }
-    
+
     public void enableTo(boolean enabled) {
         dtTo.setEnabled(enabled);
         jlTo.setEnabled(enabled);
     }
-    
+
     public static interface IRefresh {
-        
+
         UTCTimeRange Refresh();
     };
-    
+
     private IRefresh refreshCB = null;
-    
+
     public IRefresh getRefreshCB() {
         return refreshCB;
     }
-    
+
     public void setRefreshCB(IRefresh refreshCB) {
         this.refreshCB = refreshCB;
         refreshBt = new JButton("refresh");
         add(refreshBt);
-        
+
         refreshBt.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -80,7 +80,7 @@ public class TDateRange extends javax.swing.JPanel {
             }
         });
     }
-    
+
     private JButton refreshBt;
 
     /**
@@ -88,24 +88,24 @@ public class TDateRange extends javax.swing.JPanel {
      */
     JLabel jlFrom;
     JLabel jlTo;
-    
+
     public TDateRange() {
         this(true);
     }
-    
+
     public TDateRange(boolean showSeconds) {
         super();
         initComponents();
         initDates(showSeconds);
-        
+
     }
-    
+
     private void initDates(boolean showSeconds) {
         String dateFormat = (showSeconds) ? "HH:mm:ss" : "HH:mm";
 //        setLayout(new FlowLayout());
         JPanel pDates = new JPanel();
         pDates.setLayout(new BoxLayout(pDates, BoxLayout.LINE_AXIS));
-        
+
         jlFrom = new JLabel("From");
         pDates.add(jlFrom);
         dtFrom = newPicker(dateFormat);
@@ -114,21 +114,21 @@ public class TDateRange extends javax.swing.JPanel {
         pDates.add(jlTo);
         dtTo = newPicker(dateFormat);
         pDates.add(dtTo);
-        
+
         dtFrom.getTimePicker().getSettings().setDisplayToggleTimeMenuButton(true);
         dtTo.getTimePicker().getSettings().setDisplayToggleTimeMenuButton(true);
         pDates.validate();
         pDates.setMaximumSize(new Dimension(pDates.getMinimumSize().width, pDates.getMinimumSize().height));
         add(pDates);
     }
-    
+
     private DateTimePicker dtFrom;
     private DateTimePicker dtTo;
-    
+
     private DateTimePicker newPicker() {
         return newPicker("HH:mm:ss");
     }
-    
+
     private DateTimePicker newPicker(String dateFormat) {
         DateTimePicker dateTimePicker1 = new DateTimePicker();
 //        dateTimePicker1.datePicker.setDate(LocalDate.now());
@@ -167,7 +167,7 @@ public class TDateRange extends javax.swing.JPanel {
             }
         } catch (Exception ex) {
             logger.log(org.apache.logging.log4j.Level.FATAL, "Failed to apply Nimbus look and feel", ex);
-            
+
         }
         TDateRange tDateRange = new TDateRange();
         JFrame jf = new JFrame();
@@ -178,11 +178,11 @@ public class TDateRange extends javax.swing.JPanel {
         jf.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
-    
+
     public UTCTimeRange getTimeRange() {
         if (dtFrom.isEnabled() && dtTo.isEnabled()) {
             UTCTimeRange range = new UTCTimeRange();
-            
+
             range.setStart(getUtcTime(dtFrom.getDateTimePermissive(), zoneId, 0));
             range.setEnd(getUtcTime(dtTo.getDateTimePermissive(), zoneId, 1));
 //        inquirer.inquirer.logger.info("setTimeRange " + range.get(0) + " to " + range.get(1));
@@ -190,10 +190,10 @@ public class TDateRange extends javax.swing.JPanel {
         }
         return null;
     }
-    
+
     public UTCTimeRange getTimeRangeAlways() {
         UTCTimeRange range = new UTCTimeRange();
-        
+
         if (dtFrom.isEnabled()) {
             range.setStart(getUtcTime(dtFrom.getDateTimePermissive(), zoneId, 0));
         } else {
@@ -207,14 +207,14 @@ public class TDateRange extends javax.swing.JPanel {
 //        inquirer.inquirer.logger.info("setTimeRange " + range.get(0) + " to " + range.get(1));
         return range;
     }
-    
+
     public static long getUTCTime(DateTimePicker dtp, int adjustment) {
         return getUtcTime(dtp.getDateTimePermissive(), zoneId, adjustment);
     }
-    
+
     public static void setTimeRange(DateTimePicker dtp, long time) {
         ZonedDateTime zoneDateTime = (Instant.ofEpochMilli(time)).atZone(zoneId);
-        
+
         dtp.setDateTimePermissive(zoneDateTime.toLocalDateTime());
         DatePickerSettings dateSettings = dtp.getDatePicker().getSettings();
 //        dateSettings.setDateRangeLimits(zoneDateTime.toLocalDate(), zoneDateTime.toLocalDate());
@@ -226,11 +226,11 @@ public class TDateRange extends javax.swing.JPanel {
 //            instantFrom = dtLocalFrom.toInstant(ZoneOffset.UTC);
 //            inquirer.inquirer.logger.info("instant: "+instantFrom+" getTimeRange " + instantFrom.getEpochSecond() + " to " + instantFrom.getNano());
     }
-    
+
     public void setTimeRange(UTCTimeRange timeRange) {
         dtFrom.setEnabled(!(timeRange == null));
         dtTo.setEnabled(!(timeRange == null));
-        
+
         if (timeRange == null) {
             dtFrom.getDatePicker().clear();
             dtFrom.getTimePicker().clear();
@@ -240,10 +240,9 @@ public class TDateRange extends javax.swing.JPanel {
             logger.debug("setTimeRange " + timeRange.getStart() + " to " + timeRange.getEnd());
             setTimeRange(dtFrom, timeRange.getStart());
             setTimeRange(dtTo, timeRange.getEnd());
-            
+
         }
     }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables

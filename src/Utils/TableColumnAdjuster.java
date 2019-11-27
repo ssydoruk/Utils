@@ -25,7 +25,7 @@ import org.apache.logging.log4j.LogManager;
  */
 public class TableColumnAdjuster implements PropertyChangeListener, TableModelListener {
 
-    private boolean resizeColumns=true;
+    private boolean resizeColumns = true;
 
     /**
      * Get the value of resizeColumns
@@ -287,7 +287,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
         if (!isColumnDataIncluded) {
             return;
         }
-        if (isResizeColumns() ) {
+        if (isResizeColumns()) {
 //            logger.debug(ExceptionUtils.getStackTrace(new Throwable()));
             //  Needed when table is sorted.
             SwingUtilities.invokeLater(new Runnable() {

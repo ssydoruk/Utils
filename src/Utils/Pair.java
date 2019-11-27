@@ -1,7 +1,5 @@
 package Utils;
 
-
-
 import java.io.Serializable;
 
 public class Pair<K, V> implements Serializable {

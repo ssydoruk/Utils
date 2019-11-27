@@ -51,7 +51,7 @@ public class UTCTimeRange extends Pair<Long, Long> {
         if (l == 0) {
             return "[]";
         } else {
-           return LocalDateTime.ofInstant(Instant.ofEpochMilli(l), zoneId).toString();
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(l), zoneId).toString();
         }
     }
 

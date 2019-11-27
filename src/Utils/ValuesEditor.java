@@ -262,7 +262,7 @@ public class ValuesEditor extends StandardDialog {
         ArrayList<String> vals;
         if ((vals = getEditDialog().doShow(null)) != null) {
             infoTableModel.addRow(vals.toArray(new String[vals.size()]));
-            dataChanged=true;
+            dataChanged = true;
         }
 
     }

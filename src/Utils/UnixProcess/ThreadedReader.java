@@ -41,10 +41,8 @@ public class ThreadedReader implements Runnable {
     public ArrayList<String> getOutBuf() {
         return outBuf;
     }
-    
+
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
-
-
 
     @Override
     public void run() {
@@ -59,8 +57,9 @@ public class ThreadedReader implements Runnable {
                                 outBuf.add(s);
                             }
                         }
-                        if(stdinReadProc!=null)
+                        if (stdinReadProc != null) {
                             stdinReadProc.lineRead(s);
+                        }
                     }
                 }
             } catch (IOException ex) {
