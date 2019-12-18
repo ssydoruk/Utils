@@ -7,6 +7,7 @@ package Utils;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -38,7 +39,7 @@ public class Util {
     }
 
     public static Integer intOrDef(String s, Integer def) {
-        if (s != null) {
+        if (StringUtils.isNotBlank(s)) {
             try {
                 return Integer.parseInt(s);
             } catch (NumberFormatException e) {
@@ -49,7 +50,7 @@ public class Util {
     }
 
     public static Long intOrDef(String s, Long def) {
-        if (s != null) {
+        if (StringUtils.isNotBlank(s)) {
             try {
                 return Long.parseLong(s);
             } catch (NumberFormatException e) {
@@ -60,7 +61,7 @@ public class Util {
     }
 
     public static Long intOrDef(String s, Long def, int radix) {
-        if (s != null) {
+        if (StringUtils.isNotBlank(s)) {
             try {
                 return Long.parseLong(s, radix);
             } catch (NumberFormatException e) {
@@ -131,7 +132,7 @@ public class Util {
     }
 
     public static String StripQuotes(String UUId) {
-        if (UUId != null && !UUId.isEmpty()) {
+        if (StringUtils.isNotBlank(UUId)) {
             int startI = 0;
             char[] toCharArray = UUId.toCharArray();
             for (int j = 0; j < toCharArray.length; j++) {
