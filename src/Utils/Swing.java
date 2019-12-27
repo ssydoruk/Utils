@@ -28,6 +28,11 @@ public class Swing {
         model.setSelectedItem(null);
     }
 
+    public static String checkBoxSelection(JComboBox<String> tfSection) {
+        return (tfSection.getSelectedIndex() < 0) ? null
+                : StringUtils.stripToNull(tfSection.getSelectedItem().toString());
+    }
+
     public static Collection<String> getChoices(JComboBox<String>... boxes) {
         Collection<String> ret = new ArrayList();
         for (JComboBox<String> jComboBox : boxes) {
