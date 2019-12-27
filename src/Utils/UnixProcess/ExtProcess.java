@@ -5,9 +5,13 @@
  */
 package Utils.UnixProcess;
 
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.WinNT;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -27,6 +31,7 @@ public class ExtProcess {
 
     private ProcessBuilder pb;
     private String cmd;
+    private long procPID;
 
     public String getCmd() {
         return cmd;
@@ -86,6 +91,8 @@ public class ExtProcess {
 
     public void startProcess(boolean saveStdOut, boolean saveStdErr) throws IOException {
         proc = pb.start();
+        procPID = tryGetPid(proc);
+        logger.info("started process pid: " + procPID);
         if (otherProc != null) {
             PipeConnector pc = new PipeConnector(otherProc.getInputStream(), proc.getOutputStream());
             pipeFuture = executor.submit(pc);
@@ -148,6 +155,9 @@ public class ExtProcess {
         stdErrFuture.cancel(true);
         if (pipeFuture != null) {
             pipeFuture.cancel(true);
+        }
+        if (proc.isAlive()) {
+            proc.destroyForcibly();
         }
         closeStreams();
     }
@@ -219,8 +229,51 @@ public class ExtProcess {
 
     }
 
+    public long tryGetPid(Process p) {
+        long pid = -1;
+
+        try {
+            //for windows
+            if (p.getClass().getName().equals("java.lang.Win32Process") || p.getClass().getName().equals("java.lang.ProcessImpl")) {
+                Field f = p.getClass().getDeclaredField("handle");
+                f.setAccessible(true);
+                long handl = f.getLong(p);
+                Kernel32 kernel = Kernel32.INSTANCE;
+                WinNT.HANDLE hand = new WinNT.HANDLE();
+                hand.setPointer(Pointer.createConstant(handl));
+                pid = kernel.GetProcessId(hand);
+                f.setAccessible(false);
+            } //for unix based operating systems
+            else if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
+                Field f = p.getClass().getDeclaredField("pid");
+                f.setAccessible(true);
+                pid = f.getLong(p);
+                f.setAccessible(false);
+            }
+        } catch (Exception ex) {
+            pid = -1;
+        }
+
+        return pid;
+    }
+
+    private void killByPID(long uccPid) {
+        if (uccPid < 0) {
+            logger.error("Cannot kill UCC by PID. PID not set.");
+            return;
+        }
+//        synchronized (spawnProcessMutex) {
+//            JavaSysMon monitor = new JavaSysMon();
+//            monitor.killProcessTree(uccPid, false);
+//        }
+    }
+
     public void cancel() {
-        proc.destroyForcibly();
+        if (proc.isAlive()) {
+            proc.destroy();
+            logger.info("destroying proc " + proc.toString());
+            killByPID(procPID);
+        }
         terminateChildren();
     }
 
