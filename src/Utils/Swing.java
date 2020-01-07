@@ -25,12 +25,13 @@ public class Swing {
         for (String choice : choices) {
             model.addElement(choice);
         }
-        model.setSelectedItem(null);
+        if (model.getSize() > 0) {
+            box.setSelectedIndex(0);
+        }
     }
 
     public static String checkBoxSelection(JComboBox<String> tfSection) {
-        return (tfSection.getSelectedIndex() < 0) ? null
-                : StringUtils.stripToNull(tfSection.getSelectedItem().toString());
+        return (tfSection.getSelectedItem() != null) ? StringUtils.stripToNull(tfSection.getSelectedItem().toString()) : null;
     }
 
     public static Collection<String> getChoices(JComboBox<String>... boxes) {
