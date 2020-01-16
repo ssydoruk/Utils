@@ -25,9 +25,9 @@ public class Swing {
         for (String choice : choices) {
             model.addElement(choice);
         }
-        if (model.getSize() > 0) {
-            box.setSelectedIndex(0);
-        }
+//        if (model.getSize() > 0) {
+            box.setSelectedIndex(-1);
+//        }
     }
 
     public static String checkBoxSelection(JComboBox<String> tfSection) {
