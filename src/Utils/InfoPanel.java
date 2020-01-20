@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import org.apache.logging.log4j.LogManager;
 
 /**
  *
@@ -26,170 +27,187 @@ import javax.swing.JPanel;
  */
 public class InfoPanel extends StandardDialog {
 
-        private Container mainPanel;
-        private final int buttonOptions;
-        private JComponent bannerPannel = null;
+    private Container mainPanel;
+    private final int buttonOptions;
+    private JComponent bannerPannel = null;
 
-        private InfoPanel(Window p, String t, JComponent bannerPannel, Container jScrollPane, int YES_NO_OPTION) {
-            this(p, t, jScrollPane, YES_NO_OPTION);
-            this.bannerPannel = bannerPannel;
-        }
+    private InfoPanel(Window p, String t, JComponent bannerPannel, Container jScrollPane, int YES_NO_OPTION) {
+        this(p, t, jScrollPane, YES_NO_OPTION);
+        this.bannerPannel = bannerPannel;
+    }
 
-        public void setMainPanel(Container mainPanel) {
-            this.mainPanel = mainPanel;
-        }
+    public void setMainPanel(Container mainPanel) {
+        this.mainPanel = mainPanel;
+    }
 
-        public InfoPanel(Window parent, String title, Container jScrollPane, int buttonOptions) throws HeadlessException {
-            super(parent, title);
-            this.mainPanel = jScrollPane;
-            this.buttonOptions = buttonOptions;
-        }
+    public InfoPanel(Window parent, String title, Container jScrollPane, int buttonOptions) throws HeadlessException {
+        super(parent, title);
+        this.mainPanel = jScrollPane;
+        this.buttonOptions = buttonOptions;
+    }
 
-        @Override
-        public JComponent createBannerPanel() {
+    @Override
+    public JComponent createBannerPanel() {
 //            return new BannerPanel("pannel tytle", "descrr");
 //            if( bannerPannel!=null){
 //                bannerPannel = new BannerPanel("pannel tytle", "descrr");
 //                return bannerPannel;
 //            }
-            return bannerPannel;
-        }
-
-        @Override
-        public JComponent createContentPanel() {
-            JPanel panel = new JPanel(new BorderLayout(10, 10));
-            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-
-            panel.add(mainPanel, BorderLayout.CENTER);
-            return panel;
-        }
-
-        @Override
-        public ButtonPanel createButtonPanel() {
-            ButtonPanel buttonPanel = new ButtonPanel();
-            switch (buttonOptions) {
-
-                case JOptionPane.DEFAULT_OPTION: {
-                    JButton cancelButton = new JButton();
-                    buttonPanel.addButton(cancelButton);
-
-                    cancelButton.setAction(new AbstractAction() {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(RESULT_CANCELLED);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-                    cancelButton.setText("Close");
-
-                    setDefaultCancelAction(cancelButton.getAction());
-                    getRootPane().setDefaultButton(cancelButton);
-                    break;
-                }
-
-                case JOptionPane.YES_NO_CANCEL_OPTION: {
-
-                    JButton yesButton = new JButton();
-                    buttonPanel.addButton(yesButton);
-
-                    yesButton.setAction(new AbstractAction("Yes") {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(JOptionPane.YES_OPTION);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-
-                    JButton noButton = new JButton();
-                    buttonPanel.addButton(noButton);
-
-                    noButton.setAction(new AbstractAction("No") {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(JOptionPane.NO_OPTION);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-
-                    JButton cancelButton = new JButton();
-                    buttonPanel.addButton(cancelButton);
-
-                    cancelButton.setAction(new AbstractAction("Cancel") {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(JOptionPane.CANCEL_OPTION);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-
-                    setDefaultCancelAction(cancelButton.getAction());
-                    getRootPane().setDefaultButton(noButton);
-                    break;
-                }
-
-                case JOptionPane.YES_NO_OPTION: {
-                    JButton yesButton = new JButton();
-                    buttonPanel.addButton(yesButton);
-
-                    yesButton.setAction(new AbstractAction("Yes") {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(JOptionPane.YES_OPTION);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-
-                    JButton noButton = new JButton();
-                    buttonPanel.addButton(noButton);
-
-                    noButton.setAction(new AbstractAction("No") {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(JOptionPane.NO_OPTION);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-                    setDefaultCancelAction(noButton.getAction());
-                    getRootPane().setDefaultButton(noButton);
-                    break;
-                }
-                case JOptionPane.OK_CANCEL_OPTION: {
-                    JButton yesButton = new JButton();
-                    buttonPanel.addButton(yesButton);
-
-                    yesButton.setAction(new AbstractAction("OK") {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(JOptionPane.OK_OPTION);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-
-                    JButton noButton = new JButton();
-                    buttonPanel.addButton(noButton);
-
-                    noButton.setAction(new AbstractAction("Cancel") {
-                        public void actionPerformed(ActionEvent e) {
-                            setDialogResult(JOptionPane.CANCEL_OPTION);
-                            setVisible(false);
-                            dispose();
-                        }
-                    });
-                    setDefaultCancelAction(noButton.getAction());
-                    getRootPane().setDefaultButton(noButton);
-                    break;
-
-                }
-            }
-//            buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            buttonPanel.setSizeConstraint(ButtonPanel.NO_LESS_THAN); // since the checkbox is quite wide, we don't want all of them have the same size.
-            return buttonPanel;
-        }
-
-        public void showModal() {
-            pack();
-//        ScreenInfo.CenterWindow(allFiles);
-            setModal(true);
-            ScreenInfo.setVisible(getParent(), this, true);
-        }
+        return bannerPannel;
     }
+
+    ButtonPanel buttonPanel = new ButtonPanel();
+
+    @Override
+    public JComponent createContentPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+        panel.add(mainPanel, BorderLayout.CENTER);
+        return panel;
+    }
+
+    @Override
+    public ButtonPanel createButtonPanel() {
+
+        switch (buttonOptions) {
+
+            case JOptionPane.DEFAULT_OPTION: {
+                JButton cancelButton = new JButton();
+                buttonPanel.addButton(cancelButton);
+
+                cancelButton.setAction(new AbstractAction() {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(RESULT_CANCELLED);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+                cancelButton.setText("Close");
+
+                setDefaultCancelAction(cancelButton.getAction());
+                getRootPane().setDefaultButton(cancelButton);
+                break;
+            }
+
+            case JOptionPane.YES_NO_CANCEL_OPTION: {
+
+                JButton yesButton = new JButton();
+                buttonPanel.addButton(yesButton);
+
+                yesButton.setAction(new AbstractAction("Yes") {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(JOptionPane.YES_OPTION);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+
+                JButton noButton = new JButton();
+                buttonPanel.addButton(noButton);
+
+                noButton.setAction(new AbstractAction("No") {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(JOptionPane.NO_OPTION);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+
+                JButton cancelButton = new JButton();
+                buttonPanel.addButton(cancelButton);
+
+                cancelButton.setAction(new AbstractAction("Cancel") {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(JOptionPane.CANCEL_OPTION);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+
+                setDefaultCancelAction(cancelButton.getAction());
+                getRootPane().setDefaultButton(noButton);
+                break;
+            }
+
+            case JOptionPane.YES_NO_OPTION: {
+                JButton yesButton = new JButton();
+                buttonPanel.addButton(yesButton);
+
+                yesButton.setAction(new AbstractAction("Yes") {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(JOptionPane.YES_OPTION);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+
+                JButton noButton = new JButton();
+                buttonPanel.addButton(noButton);
+
+                noButton.setAction(new AbstractAction("No") {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(JOptionPane.NO_OPTION);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+                setDefaultCancelAction(noButton.getAction());
+                getRootPane().setDefaultButton(noButton);
+                break;
+            }
+            case JOptionPane.OK_CANCEL_OPTION: {
+                JButton yesButton = new JButton();
+                buttonPanel.addButton(yesButton);
+
+                yesButton.setAction(new AbstractAction("OK") {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(JOptionPane.OK_OPTION);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+
+                JButton noButton = new JButton();
+                buttonPanel.addButton(noButton);
+
+                noButton.setAction(new AbstractAction("Cancel") {
+                    public void actionPerformed(ActionEvent e) {
+                        setDialogResult(JOptionPane.CANCEL_OPTION);
+                        setVisible(false);
+                        dispose();
+                    }
+                });
+                setDefaultCancelAction(noButton.getAction());
+                getRootPane().setDefaultButton(noButton);
+                break;
+
+            }
+        }
+//            buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        buttonPanel.setSizeConstraint(ButtonPanel.NO_LESS_THAN); // since the checkbox is quite wide, we don't want all of them have the same size.
+        return buttonPanel;
+    }
+
+    public void addButton(String name, int action) {
+        JButton newButton = new JButton();
+        buttonPanel.addButton(newButton);
+
+        newButton.setAction(new AbstractAction(name) {
+            public void actionPerformed(ActionEvent e) {
+//                LogManager.getLogger().info("setting action: "+action);
+                setDialogResult(action);
+                setVisible(false);
+                dispose();
+            }
+        });
+        buttonPanel.add(newButton);
+    }
+
+    public void showModal() {
+        pack();
+//        ScreenInfo.CenterWindow(allFiles);
+        setModal(true);
+        ScreenInfo.setVisible(getParent(), this, true);
+    }
+}
