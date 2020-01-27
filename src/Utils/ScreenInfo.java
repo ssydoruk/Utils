@@ -157,14 +157,19 @@ public class ScreenInfo {
 
     public static void refitMainToMsg(JFrame rptForm, JFrame fullMsgWindow) {
         Rectangle windowScreenBounds = getWindowScreenBounds(rptForm);
-        rptForm.setLocation(windowScreenBounds.x,
-                windowScreenBounds.y + windowScreenBounds.height / 3);
-        rptForm.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
-
-        fullMsgWindow.setLocationRelativeTo(rptForm);
-        fullMsgWindow.setLocation(windowScreenBounds.x,
-                windowScreenBounds.y);
-        fullMsgWindow.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
+        if (windowScreenBounds != null) {
+            if (rptForm != null) {
+                rptForm.setLocation(windowScreenBounds.x,
+                        windowScreenBounds.y + windowScreenBounds.height / 3);
+                rptForm.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
+            }
+            if (fullMsgWindow != null) {
+                fullMsgWindow.setLocationRelativeTo(rptForm);
+                fullMsgWindow.setLocation(windowScreenBounds.x,
+                        windowScreenBounds.y);
+                fullMsgWindow.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
+            } 
+        }
 
     }
 }
