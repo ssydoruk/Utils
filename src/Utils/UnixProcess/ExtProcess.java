@@ -163,26 +163,41 @@ public class ExtProcess {
     }
 
     public int waitFor() throws InterruptedException {
-        exitCode = proc.waitFor();
-        logger.debug("Main process terminated with code " + exitCode);
-        try {
-            stdErrFuture.get(5, TimeUnit.SECONDS);
-        } catch (ExecutionException ex) {
-            logger.error("", ex);
-        } catch (TimeoutException e) {
-            logger.error("Timeout while waiting for StdErr to read", e);
-            stdErrFuture.cancel(true);
+        return waitFor(-1, TimeUnit.MILLISECONDS);
+    }
+
+    public int waitFor(int cnt, TimeUnit tu) throws InterruptedException {
+        if (proc.isAlive()) {
+            if (cnt > 0) {
+                try {
+                    boolean isEnded = proc.waitFor(cnt, tu);
+                } catch (InterruptedException interruptedException) {
+                    exitCode = 255;
+                }
+            } else {
+                exitCode = proc.waitFor();
+            }
+            logger.debug("Main process terminated with code " + exitCode);
+            try {
+                stdErrFuture.get(5, TimeUnit.SECONDS);
+            } catch (ExecutionException ex) {
+                logger.error("", ex);
+            } catch (TimeoutException e) {
+                logger.error("Timeout while waiting for StdErr to read", e);
+                stdErrFuture.cancel(true);
+            }
+            try {
+                stdInFuture.get(5, TimeUnit.SECONDS);
+            } catch (ExecutionException ex) {
+                logger.error("", ex);
+            } catch (TimeoutException e) {
+                logger.error("Timeout while waiting for StdIn to read", e);
+                stdInFuture.cancel(true);
+            }
+            closeStreams();
+            logger.debug("Ret code: " + exitCode);
         }
-        try {
-            stdInFuture.get(5, TimeUnit.SECONDS);
-        } catch (ExecutionException ex) {
-            logger.error("", ex);
-        } catch (TimeoutException e) {
-            logger.error("Timeout while waiting for StdIn to read", e);
-            stdInFuture.cancel(true);
-        }
-        closeStreams();
-        logger.debug("Ret code: " + exitCode);
+
         return exitCode;
     }
 
