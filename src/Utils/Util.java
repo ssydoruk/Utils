@@ -7,6 +7,9 @@ package Utils;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -154,5 +157,43 @@ public class Util {
         }
 
         return UUId;
+    }
+    
+        /**
+     * Stringify duration
+     *
+     * @param ms duration in milliseconds
+     * @param showMS if show milliseconds
+     * @return
+     * @throws DatatypeConfigurationException
+     */
+    public static String pDuration(long ms, boolean showMS) {
+        try {
+            Duration duration = DatatypeFactory.newInstance().newDuration(ms);
+            int hr = duration.getHours();
+            int min = duration.getMinutes();
+            StringBuilder ret = new StringBuilder(30);
+
+            if (hr > 0) {
+                ret.append(String.format("%dh ", hr));
+            }
+            if (min > 0) {
+                ret.append(String.format("%dm ", min));
+            }
+            if (showMS) {
+                ret.append(String.format("%d.%03ds", duration.getSeconds(), Math.abs(ms % 1000)));
+            } else {
+                ret.append(String.format("%d s", duration.getSeconds()));
+            }
+//        System.out.println("pDuration: ms"+ms+" "+ret.toString());
+
+            return ret.toString();
+        } catch (DatatypeConfigurationException datatypeConfigurationException) {
+            return "";
+        }
+    }
+
+    public static String pDuration(long ms) {
+        return pDuration(ms, true);
     }
 }
