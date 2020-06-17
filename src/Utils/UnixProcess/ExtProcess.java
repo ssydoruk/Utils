@@ -5,6 +5,7 @@
  */
 package Utils.UnixProcess;
 
+import Utils.Pair;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -21,6 +23,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 
 /**
@@ -296,5 +300,20 @@ public class ExtProcess {
 
         void lineRead(String s);
     };
+
+    public static Pair<ArrayList<String>, ArrayList<String>> executeCommand(String key, boolean saveStdOut, boolean saveStdErr) throws IOException, InterruptedException {
+        ArrayList<String> cmdParams = new ArrayList<>(Arrays.asList(StringUtils.split(key)));
+
+        logger.debug("Executing [" + StringUtils.join(cmdParams, " "));
+//        logger.trace("executing: " + rsyncParams);
+        ExtProcess proc = new ExtProcess(cmdParams);
+        proc.startProcess(saveStdOut, saveStdErr);
+        int waitFor = proc.waitFor();
+        logger.debug("process terminated, result: " + waitFor);
+
+        return (proc.getExitCode() != 255 && (saveStdOut || saveStdErr))
+                ? new Pair(proc.getSTDOut(), proc.getErrBuf()) : null;
+
+    }
 
 }

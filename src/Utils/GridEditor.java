@@ -63,6 +63,7 @@ public class GridEditor extends StandardDialog {
     private TableColumnAdjuster tca;
     private boolean dataChanged;
     private Window theParent;
+    private int mandatoryColumns = 0;
 
     public int getCloseCause() {
         return closeCause;
@@ -147,7 +148,7 @@ public class GridEditor extends StandardDialog {
         if (StringUtils.isNotBlank(row)) {
             for (String delim : new String[]{"\t", "|", ","}) {
                 String[] split = StringUtils.split(row, delim, tab.getColumnCount());
-                if (ArrayUtils.isNotEmpty(split) && split.length >= tab.getColumnCount()) {
+                if (ArrayUtils.isNotEmpty(split) && (mandatoryColumns > 0 && split.length >= mandatoryColumns) || split.length >= tab.getColumnCount()) {
                     return delim;
                 }
 
@@ -475,7 +476,8 @@ public class GridEditor extends StandardDialog {
 
     private DefaultTableModel infoTableModel;
 
-    public void setData(Object[] columns, ArrayList<Object[]> values) {
+    public void setData(Object[] columns, ArrayList<Object[]> values, int _mandatoryColumns) {
+        mandatoryColumns = _mandatoryColumns;
         infoTableModel = new DefaultTableModel();
         for (Object column : columns) {
             infoTableModel.addColumn(column);
@@ -486,6 +488,10 @@ public class GridEditor extends StandardDialog {
         tab.setModel(infoTableModel);
 //        infoTableModel.fireTableDataChanged();
 //        infoTableModel.fireTableStructureChanged();
+    }
+
+    public void setData(Object[] columns, ArrayList<Object[]> values) {
+        setData(columns, values, columns.length);
     }
 
     public ArrayList<Object[]> getData() {
@@ -710,8 +716,8 @@ public class GridEditor extends StandardDialog {
         //        }
 
         values.add(new String[]{"1", "2", "3"});
-        confServEditor.setData(new Object[]{"Section", "Key", "Value"},
-                values
+        confServEditor.setData(new Object[]{"Section", "Key", "Value", "Action"},
+                values, 3
         );
         confServEditor.doShow();
     }

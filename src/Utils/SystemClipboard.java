@@ -44,7 +44,7 @@ public class SystemClipboard {
         return null;
     }
 
-    private static Clipboard getSystemClipboard() {
+    public static Clipboard getSystemClipboard() {
         Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
         Clipboard systemClipboard = defaultToolkit.getSystemClipboard();
 
