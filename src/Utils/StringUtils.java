@@ -5,6 +5,7 @@
  */
 package Utils;
 
+import com.google.gson.GsonBuilder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +23,10 @@ public class StringUtils {
             }
         }
         return false;
+    }
+
+    static public String toJson(Object obj) {
+        return (new GsonBuilder().setPrettyPrinting().disableInnerClassSerialization()).create().toJson(obj);
     }
 
 }
