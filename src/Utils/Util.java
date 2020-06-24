@@ -64,9 +64,8 @@ public class Util {
     }
 
     public static <T> T defIfNull(T val, T def) {
-        return (val == null) ? val : def;
+        return (val == null) ? def : val;
     }
-
 
     public static Long intOrDef(String s, Long def, int radix) {
         if (StringUtils.isNotBlank(s)) {
@@ -158,8 +157,8 @@ public class Util {
 
         return UUId;
     }
-    
-        /**
+
+    /**
      * Stringify duration
      *
      * @param ms duration in milliseconds
