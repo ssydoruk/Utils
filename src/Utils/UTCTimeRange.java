@@ -8,8 +8,8 @@ package Utils;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -17,7 +17,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class UTCTimeRange extends Pair<Long, Long> {
 
-    private final static Logger logger = LogManager.getLogger();
+    final static Logger logger =  LoggerFactory.getLogger(UTCTimeRange.class);
 
     public UTCTimeRange(Long key, Long value) {
         super(key, value);

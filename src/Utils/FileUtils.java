@@ -5,8 +5,9 @@
  */
 package Utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
-import org.apache.logging.log4j.LogManager;
 
 /**
  *
@@ -14,7 +15,7 @@ import org.apache.logging.log4j.LogManager;
  */
 public class FileUtils {
 
-    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
+    final static Logger logger = LoggerFactory.getLogger(FileUtils.class);
 
     public static boolean setCurrentDirectory(String directory_name) {
         boolean result = false;  // Boolean indicating whether directory was set

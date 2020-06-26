@@ -5,8 +5,6 @@
  */
 package Utils;
 
-import Utils.ScreenInfo;
-import Utils.TableColumnAdjuster;
 import com.jidesoft.dialog.ButtonPanel;
 import com.jidesoft.dialog.StandardDialog;
 import static com.jidesoft.dialog.StandardDialog.RESULT_AFFIRMED;
@@ -22,8 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -47,7 +43,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -55,8 +52,8 @@ import org.apache.logging.log4j.LogManager;
  */
 public class GridEditor extends StandardDialog {
 
-    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
-
+    final static Logger logger = LoggerFactory.getLogger(GridEditor.class);
+    
     private int closeCause = JOptionPane.CANCEL_OPTION;
     private JTable tab;
     private String selectedFormat;
@@ -130,13 +127,13 @@ public class GridEditor extends StandardDialog {
                 tca.adjustColumns();
             }
         } catch (IOException ex) {
-            Logger.getLogger(GridEditor.class.getName()).log(Level.SEVERE, null, ex);
+           logger.error( null, ex);
         } finally {
             if (csvReader != null) {
                 try {
                     csvReader.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(GridEditor.class.getName()).log(Level.SEVERE, null, ex);
+                   logger.error( null, ex);
                 }
             }
 
@@ -208,7 +205,7 @@ public class GridEditor extends StandardDialog {
                 for (int j = 0; j < tab.getColumnCount(); j++) {
                     s.append("[").append(tab.getValueAt(i, j)).append("],");
                 }
-                logger.trace(s);
+                logger.trace(s.toString());
             }
 
         }

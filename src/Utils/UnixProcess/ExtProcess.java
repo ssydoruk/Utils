@@ -24,8 +24,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  *
@@ -49,7 +50,7 @@ public class ExtProcess {
     private Future<?> stdErrFuture;
     private ExtProcess otherProc;
     private Future<?> pipeFuture;
-    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
+    final static Logger logger =  LoggerFactory.getLogger(ExtProcess.class);
 
     public ExtProcess(List<String> tarParams) throws IOException {
         cmd = tarParams.get(0);
@@ -215,7 +216,7 @@ public class ExtProcess {
             exitCode = waitFor();
             return getSTDOut();
         } catch (InterruptedException ex) {
-            logger.log(org.apache.logging.log4j.Level.FATAL, ex);
+            logger.error("", ex);
         }
         return null;
     }

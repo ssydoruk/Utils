@@ -24,14 +24,16 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Stepan
  */
 public class TDateRange extends javax.swing.JPanel {
-
+    final static Logger logger = LoggerFactory.getLogger(TDateRange.class);
+    
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled); //To change body of generated methods, choose Tools | Templates.
@@ -166,7 +168,7 @@ public class TDateRange extends javax.swing.JPanel {
                 }
             }
         } catch (Exception ex) {
-            logger.log(org.apache.logging.log4j.Level.FATAL, "Failed to apply Nimbus look and feel", ex);
+            logger.error( "Failed to apply Nimbus look and feel", ex);
 
         }
         TDateRange tDateRange = new TDateRange();
@@ -177,7 +179,6 @@ public class TDateRange extends javax.swing.JPanel {
         jf.setVisible(true);
         jf.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
-    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
 
     public UTCTimeRange getTimeRange() {
         if (dtFrom.isEnabled() && dtTo.isEnabled()) {

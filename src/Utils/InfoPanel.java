@@ -19,7 +19,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import org.apache.logging.log4j.LogManager;
 
 /**
  *

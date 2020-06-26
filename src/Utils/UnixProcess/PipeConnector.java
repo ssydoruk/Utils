@@ -6,7 +6,8 @@
 package Utils.UnixProcess;
 
 import java.io.*;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Copy the output stream from one process in a pipeline to the input stream of
@@ -27,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
  * @version 1.0 2015-01-06
  */
 public class PipeConnector implements Runnable {
+    final static Logger logger = LoggerFactory.getLogger(PipeConnector.class);
 
     private InputStream _process1Output = null;
     private OutputStream _process2Input = null;
@@ -43,8 +45,7 @@ public class PipeConnector implements Runnable {
         _process1Output = process1Output;
         _process2Input = process2Input;
     }
-    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
-
+    
     /**
      * Perform the copy operation in a separate thread
      */

@@ -10,13 +10,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author stepansydoruk
  */
 public class ThreadedReader implements Runnable {
+    final static Logger logger = LoggerFactory.getLogger(ThreadedReader.class);
 
     private BufferedReader stream; // no need to buffer it
     private String cmd;
@@ -29,7 +31,7 @@ public class ThreadedReader implements Runnable {
         this.stream = new BufferedReader(new InputStreamReader(in));
         this.cmd = cmd;
         this.streamName = stream;
-        LogManager.getLogger(ThreadedReader.class.getPackage().getName()).debug("started reader for cmd: " + cmd + " stream:" + streamName);
+        logger.debug("started reader for cmd: " + cmd + " stream:" + streamName);
     }
 
     ThreadedReader(InputStream in, String cmd, String stream, boolean saveStdOut) {
@@ -42,8 +44,7 @@ public class ThreadedReader implements Runnable {
         return outBuf;
     }
 
-    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
-
+    
     @Override
     public void run() {
         if (stream != null) {
@@ -63,7 +64,7 @@ public class ThreadedReader implements Runnable {
                     }
                 }
             } catch (IOException ex) {
-                logger.error(ex);
+                logger.error("", ex);
             }
             logger.debug(cmd + "_" + streamName + ": exited");
         }

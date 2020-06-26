@@ -35,7 +35,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -43,8 +44,7 @@ import org.apache.logging.log4j.LogManager;
  */
 public class ValuesEditor extends StandardDialog {
 
-    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger();
-
+    final static Logger logger = LoggerFactory.getLogger(ValuesEditor.class);
     private int closeCause = JOptionPane.CANCEL_OPTION;
     private JTable tab;
     private final String selectedFormat;
@@ -114,7 +114,7 @@ public class ValuesEditor extends StandardDialog {
                 for (int j = 0; j < tab.getColumnCount(); j++) {
                     s.append("[" + tab.getValueAt(i, j) + "],");
                 }
-                logger.trace(s);
+                logger.trace(s.toString());
             }
 
         }
