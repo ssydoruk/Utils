@@ -20,12 +20,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class FileWatcher {
 
 //    final static Logger logger = LoggerFactory.getLogger(FileWatcher.class);
-
     private final File file;
+    private long pollTimeMS = 25;
 
     public FileWatcher(File file) {
         this.file = file;
         fwt = new FileWatcherThread();
+    }
+
+    public FileWatcher(File file, long _pollTimeMS) {
+        this(file);
+        pollTimeMS = _pollTimeMS;
     }
 
     public abstract void doOnChange(File f);
@@ -69,7 +74,7 @@ public abstract class FileWatcher {
                 while (!isStopped()) {
                     WatchKey key;
                     try {
-                        key = watcher.poll(25, TimeUnit.MILLISECONDS);
+                        key = watcher.poll(pollTimeMS, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException e) {
                         return;
                     }
