@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
  * @author Stepan
  */
 public class TDateRange extends javax.swing.JPanel {
-    final static Logger logger = LoggerFactory.getLogger(TDateRange.class);
     
     @Override
     public void setEnabled(boolean enabled) {
@@ -168,7 +167,7 @@ public class TDateRange extends javax.swing.JPanel {
                 }
             }
         } catch (Exception ex) {
-            logger.error( "Failed to apply Nimbus look and feel", ex);
+            System.out.println( "Failed to apply Nimbus look and feel");
 
         }
         TDateRange tDateRange = new TDateRange();
@@ -238,7 +237,6 @@ public class TDateRange extends javax.swing.JPanel {
             dtTo.getDatePicker().clear();
             dtTo.getTimePicker().clear();
         } else {
-            logger.debug("setTimeRange " + timeRange.getStart() + " to " + timeRange.getEnd());
             setTimeRange(dtFrom, timeRange.getStart());
             setTimeRange(dtTo, timeRange.getEnd());
 

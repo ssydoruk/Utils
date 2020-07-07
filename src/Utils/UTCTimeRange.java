@@ -17,8 +17,6 @@ import org.slf4j.LoggerFactory;
  */
 public class UTCTimeRange extends Pair<Long, Long> {
 
-    final static Logger logger =  LoggerFactory.getLogger(UTCTimeRange.class);
-
     public UTCTimeRange(Long key, Long value) {
         super(key, value);
     }
@@ -73,7 +71,6 @@ public class UTCTimeRange extends Pair<Long, Long> {
     }
 
     static public Long getUtcTime(LocalDateTime dateTime, ZoneId _zoneID, int adjustment) {
-        logger.trace("getUtcTime " + dateTime);
         return (dateTime.toInstant(_zoneID.getRules().getOffset(dateTime)).getEpochSecond() + adjustment) * 1000;
 
     }
