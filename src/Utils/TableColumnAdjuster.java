@@ -7,8 +7,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /*
  *	Class to manage the widths of colunmns in a table.
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
  *  of RESIZE_ALL_COLUMNS will work the best.
  */
 public class TableColumnAdjuster implements PropertyChangeListener, TableModelListener {
-    final static Logger logger = LoggerFactory.getLogger(TableColumnAdjuster.class);
+//    final static Logger logger = LoggerFactory.getLogger(TableColumnAdjuster.class);
 
     private boolean resizeColumns = true;
 
@@ -80,7 +79,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 	 *  Adjust the widths of all the columns in the table
      */
     public void adjustColumns() {
-        logger.debug("Adjust columns ");
+//        logger.debug("Adjust columns ");
         table.setVisible(false);
         TableColumnModel tcm = table.getColumnModel();
 
@@ -272,7 +271,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 
             model = (TableModel) e.getNewValue();
             model.addTableModelListener(this);
-            logger.debug("not adjusting columns for now");
+//            logger.debug("not adjusting columns for now");
 
 //            adjustColumns();
         }
