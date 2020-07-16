@@ -5,7 +5,6 @@
  */
 package Utils;
 
-import Utils.TableColumnAdjuster;
 import com.jidesoft.dialog.ButtonPanel;
 import com.jidesoft.dialog.StandardDialog;
 import static com.jidesoft.dialog.StandardDialog.RESULT_AFFIRMED;
@@ -52,6 +51,24 @@ public class ValuesEditor extends StandardDialog {
     private JButton upButton;
     private JButton downButton;
     private boolean dataChanged;
+    private IAddChoices addChoices = null;
+    ButtonPanel buttonPanel;
+    JButton cancelButton;
+    JButton addButton;
+    JButton editButton;
+    JButton deleteButton;
+    EditValuesDialog editDialog = null;
+    private DefaultTableModel infoTableModel;
+
+    public ValuesEditor(Window parent, String title, String selectedFormat) {
+        super(parent, title);
+        this.tab = new JTable();
+        this.selectedFormat = selectedFormat;
+        tca = new TableColumnAdjuster(tab);
+        tca.setColumnHeaderIncluded(true);
+        dataChanged = false;
+
+    }
 
     public int getCloseCause() {
         return closeCause;
@@ -71,30 +88,12 @@ public class ValuesEditor extends StandardDialog {
         downButton.setEnabled(moreThanOneSelected && selectedRows[selectedRows.length - 1] < tab.getRowCount() - 1);
     }
 
-    private IAddChoices addChoices = null;
-
     public IAddChoices getAddChoices() {
         return addChoices;
     }
 
     public void setAddChoices(IAddChoices addChoices) {
         this.addChoices = addChoices;
-    }
-
-    public interface IAddChoices {
-
-        public HashSet<String> getAddChoices();
-
-    }
-
-    public ValuesEditor(Window parent, String title, String selectedFormat) {
-        super(parent, title);
-        this.tab = new JTable();
-        this.selectedFormat = selectedFormat;
-        tca = new TableColumnAdjuster(tab);
-        tca.setColumnHeaderIncluded(true);
-        dataChanged = false;
-
     }
 
     /**
@@ -112,7 +111,7 @@ public class ValuesEditor extends StandardDialog {
             for (int i = 0; i < tab.getRowCount(); i++) {
                 s.setLength(0);
                 for (int j = 0; j < tab.getColumnCount(); j++) {
-                    s.append("[" + tab.getValueAt(i, j) + "],");
+                    s.append("[").append(tab.getValueAt(i, j)).append("],");
                 }
                 logger.trace(s.toString());
             }
@@ -149,12 +148,6 @@ public class ValuesEditor extends StandardDialog {
         return listPane;
     }
 
-    ButtonPanel buttonPanel;
-    JButton cancelButton;
-    JButton addButton;
-    JButton editButton;
-    JButton deleteButton;
-
     @Override
     public ButtonPanel createButtonPanel() {
         buttonPanel = new ButtonPanel();
@@ -162,6 +155,7 @@ public class ValuesEditor extends StandardDialog {
         addButton = new JButton();
         buttonPanel.addButton(addButton);
         addButton.setAction(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 addValuePressed(e);
 
@@ -173,6 +167,7 @@ public class ValuesEditor extends StandardDialog {
         editButton = new JButton();
         buttonPanel.addButton(editButton);
         editButton.setAction(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 editValuePressed(e);
 
@@ -184,6 +179,7 @@ public class ValuesEditor extends StandardDialog {
         deleteButton = new JButton();
         buttonPanel.addButton(deleteButton);
         deleteButton.setAction(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 deleteValuePressed(e);
 
@@ -195,6 +191,7 @@ public class ValuesEditor extends StandardDialog {
         upButton = new JButton();
         buttonPanel.addButton(upButton);
         upButton.setAction(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 upPressed(e);
 
@@ -206,6 +203,7 @@ public class ValuesEditor extends StandardDialog {
         downButton = new JButton();
         buttonPanel.addButton(downButton);
         downButton.setAction(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 downPressed(e);
 
@@ -218,6 +216,7 @@ public class ValuesEditor extends StandardDialog {
         buttonPanel.addButton(cancelButton);
 
         cancelButton.setAction(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 setDialogResult(RESULT_CANCELLED);
                 setCloseCause(JOptionPane.CANCEL_OPTION);
@@ -249,8 +248,6 @@ public class ValuesEditor extends StandardDialog {
         return buttonPanel;
     }
 
-    EditValuesDialog editDialog = null;
-
     private EditValuesDialog getEditDialog() {
         if (editDialog == null) {
             editDialog = new EditValuesDialog(this, tab.getColumnModel());
@@ -271,7 +268,7 @@ public class ValuesEditor extends StandardDialog {
         ArrayList<ArrayList<String>> ret = new ArrayList<>(tab.getColumnCount());
 
         for (int j = 0; j < tab.getColumnCount(); j++) {
-            ArrayList<String> r = new ArrayList<String>(tab.getRowCount());
+            ArrayList<String> r = new ArrayList<>(tab.getRowCount());
             for (int i = 0; i < tab.getRowCount(); i++) {
                 r.add((String) tab.getValueAt(i, j));
 
@@ -356,8 +353,6 @@ public class ValuesEditor extends StandardDialog {
         return doShow();
     }
 
-    private DefaultTableModel infoTableModel;
-
     public void setData(Object[] columns, ArrayList<Object[]> values) {
         infoTableModel = new DefaultTableModel();
         for (Object column : columns) {
@@ -385,14 +380,20 @@ public class ValuesEditor extends StandardDialog {
         return ret;
     }
 
+    public interface IAddChoices {
+
+        public HashSet<String> getAddChoices();
+
+    }
+
     class EditValuesDialog extends StandardDialog {
+
+        ArrayList col;
+        ArrayList<EnterPanel> pan;
 
         public EditValuesDialog() {
             super();
         }
-
-        ArrayList col;
-        ArrayList<EnterPanel> pan;
 
         private EditValuesDialog(Window parent, TableColumnModel columnModel) {
             super(parent);
@@ -441,52 +442,6 @@ public class ValuesEditor extends StandardDialog {
             enterPanel.addChoices(sorted);
         }
 
-        class EnterPanel {
-
-            public JPanel getEnterPanel() {
-                return enterPanel;
-            }
-
-            private final JComboBox<String> tbValue;
-            private JPanel enterPanel;
-
-            public String getText() {
-                return (tbValue != null) ? (tbValue.getSelectedItem() != null) ? tbValue.getSelectedItem().toString() : null : null;
-            }
-
-            public void setText(String txt) {
-                tbValue.setSelectedItem(txt);
-            }
-
-            EnterPanel(String title) {
-                enterPanel = new JPanel();
-                enterPanel.setLayout(new BoxLayout(enterPanel, BoxLayout.LINE_AXIS));
-                enterPanel.add(new JLabel(title));
-                tbValue = new JComboBox();
-                tbValue.setEditable(true);
-                enterPanel.add(tbValue);
-            }
-
-            private void clearChoices() {
-                tbValue.removeAllItems();
-
-            }
-
-            private void addChoices(HashSet<String> addChoices) {
-                for (String addChoice : addChoices) {
-                    tbValue.addItem(addChoice);
-                }
-
-            }
-
-            private void addChoices(ArrayList<String> addChoices) {
-                for (String addChoice : addChoices) {
-                    tbValue.addItem(addChoice);
-                }
-
-            }
-        }
-
         @Override
         public JComponent createBannerPanel() {
             return null;
@@ -511,6 +466,7 @@ public class ValuesEditor extends StandardDialog {
             buttonPanel.addButton(cancelButton);
 
             cancelButton.setAction(new AbstractAction() {
+                @Override
                 public void actionPerformed(ActionEvent e) {
                     setDialogResult(RESULT_CANCELLED);
                     setVisible(false);
@@ -572,6 +528,52 @@ public class ValuesEditor extends StandardDialog {
                 return null;
             }
 
+        }
+
+        class EnterPanel {
+
+            private final JComboBox<String> tbValue;
+            private final JPanel enterPanel;
+
+            EnterPanel(String title) {
+                enterPanel = new JPanel();
+                enterPanel.setLayout(new BoxLayout(enterPanel, BoxLayout.LINE_AXIS));
+                enterPanel.add(new JLabel(title));
+                tbValue = new JComboBox();
+                tbValue.setEditable(true);
+                enterPanel.add(tbValue);
+            }
+
+            public JPanel getEnterPanel() {
+                return enterPanel;
+            }
+
+            public String getText() {
+                return (tbValue != null) ? (tbValue.getSelectedItem() != null) ? tbValue.getSelectedItem().toString() : null : null;
+            }
+
+            public void setText(String txt) {
+                tbValue.setSelectedItem(txt);
+            }
+
+            private void clearChoices() {
+                tbValue.removeAllItems();
+
+            }
+
+            private void addChoices(HashSet<String> addChoices) {
+                for (String addChoice : addChoices) {
+                    tbValue.addItem(addChoice);
+                }
+
+            }
+
+            private void addChoices(ArrayList<String> addChoices) {
+                for (String addChoice : addChoices) {
+                    tbValue.addItem(addChoice);
+                }
+
+            }
         }
     }
 

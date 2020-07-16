@@ -26,7 +26,7 @@ public class Swing {
             model.addElement(choice);
         }
 //        if (model.getSize() > 0) {
-            box.setSelectedIndex(-1);
+        box.setSelectedIndex(-1);
 //        }
     }
 

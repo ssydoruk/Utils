@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
  * @author stepansydoruk
  */
 public class ThreadedReader implements Runnable {
+
     final static Logger logger = LoggerFactory.getLogger(ThreadedReader.class);
 
     private BufferedReader stream; // no need to buffer it
@@ -44,7 +45,6 @@ public class ThreadedReader implements Runnable {
         return outBuf;
     }
 
-    
     @Override
     public void run() {
         if (stream != null) {

@@ -168,7 +168,7 @@ public class ScreenInfo {
                 fullMsgWindow.setLocation(windowScreenBounds.x,
                         windowScreenBounds.y);
                 fullMsgWindow.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
-            } 
+            }
         }
 
     }

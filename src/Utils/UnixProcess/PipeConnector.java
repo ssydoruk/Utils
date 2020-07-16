@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
  * @version 1.0 2015-01-06
  */
 public class PipeConnector implements Runnable {
+
     final static Logger logger = LoggerFactory.getLogger(PipeConnector.class);
 
     private InputStream _process1Output = null;
@@ -45,10 +46,11 @@ public class PipeConnector implements Runnable {
         _process1Output = process1Output;
         _process2Input = process2Input;
     }
-    
+
     /**
      * Perform the copy operation in a separate thread
      */
+    @Override
     public void run() {
         int value;
 

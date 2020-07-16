@@ -8,14 +8,27 @@ package Utils;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Stepan
  */
 public class UTCTimeRange extends Pair<Long, Long> {
+
+    public static ZoneId zoneId = ZoneId.systemDefault();
+
+    static public long getUtcTime(LocalDateTime dateTime, int adjustment) {
+        return getUtcTime(dateTime, zoneId, adjustment);
+    }
+
+    public static void setZoneId(ZoneId zoneId) {
+        UTCTimeRange.zoneId = zoneId;
+    }
+
+    static public Long getUtcTime(LocalDateTime dateTime, ZoneId _zoneID, int adjustment) {
+        return (dateTime.toInstant(_zoneID.getRules().getOffset(dateTime)).getEpochSecond() + adjustment) * 1000;
+
+    }
 
     public UTCTimeRange(Long key, Long value) {
         super(key, value);
@@ -61,17 +74,4 @@ public class UTCTimeRange extends Pair<Long, Long> {
         return ret.toString();
     }
 
-    static public long getUtcTime(LocalDateTime dateTime, int adjustment) {
-        return getUtcTime(dateTime, zoneId, adjustment);
-    }
-    public static ZoneId zoneId = ZoneId.systemDefault();
-
-    public static void setZoneId(ZoneId zoneId) {
-        UTCTimeRange.zoneId = zoneId;
-    }
-
-    static public Long getUtcTime(LocalDateTime dateTime, ZoneId _zoneID, int adjustment) {
-        return (dateTime.toInstant(_zoneID.getRules().getOffset(dateTime)).getEpochSecond() + adjustment) * 1000;
-
-    }
 }

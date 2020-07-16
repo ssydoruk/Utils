@@ -28,31 +28,13 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 
     private boolean resizeColumns = true;
 
-    /**
-     * Get the value of resizeColumns
-     *
-     * @return the value of resizeColumns
-     */
-    public boolean isResizeColumns() {
-        return resizeColumns;
-    }
-
-    /**
-     * Set the value of resizeColumns
-     *
-     * @param resizeColumns new value of resizeColumns
-     */
-    public void setResizeColumns(boolean resizeColumns) {
-        this.resizeColumns = resizeColumns;
-    }
-
     private JTable table;
     private int spacing;
     private boolean isColumnHeaderIncluded;
     private boolean isColumnDataIncluded;
     private boolean isOnlyAdjustLarger;
     private boolean isDynamicAdjustment;
-    private Map<TableColumn, Integer> columnSizes = new HashMap<TableColumn, Integer>();
+    private Map<TableColumn, Integer> columnSizes = new HashMap<>();
     private int maxColumnWidth = 0;
 
     /*
@@ -73,6 +55,24 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
         setOnlyAdjustLarger(false);
         setDynamicAdjustment(false);
         installActions();
+    }
+
+    /**
+     * Get the value of resizeColumns
+     *
+     * @return the value of resizeColumns
+     */
+    public boolean isResizeColumns() {
+        return resizeColumns;
+    }
+
+    /**
+     * Set the value of resizeColumns
+     *
+     * @param resizeColumns new value of resizeColumns
+     */
+    public void setResizeColumns(boolean resizeColumns) {
+        this.resizeColumns = resizeColumns;
     }
 
     /*
@@ -261,6 +261,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 //  Implement the PropertyChangeListener
 //
 
+    @Override
     public void propertyChange(PropertyChangeEvent e) {
         //  When the TableModel changes we need to update the listeners
         //  and column widths
@@ -290,6 +291,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 //            logger.debug(ExceptionUtils.getStackTrace(new Throwable()));
             //  Needed when table is sorted.
             SwingUtilities.invokeLater(new Runnable() {
+                @Override
                 public void run() {
                     //  A cell has been updated
 
@@ -372,8 +374,8 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
      */
     class ColumnAction extends AbstractAction {
 
-        private boolean isSelectedColumn;
-        private boolean isAdjust;
+        private final boolean isSelectedColumn;
+        private final boolean isAdjust;
 
         public ColumnAction(boolean isSelectedColumn, boolean isAdjust) {
             this.isSelectedColumn = isSelectedColumn;
@@ -410,8 +412,8 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
      */
     class ToggleAction extends AbstractAction {
 
-        private boolean isToggleDynamic;
-        private boolean isToggleLarger;
+        private final boolean isToggleDynamic;
+        private final boolean isToggleLarger;
 
         public ToggleAction(boolean isToggleDynamic, boolean isToggleLarger) {
             this.isToggleDynamic = isToggleDynamic;

@@ -29,20 +29,21 @@ public class InfoPanel extends StandardDialog {
     private Container mainPanel;
     private final int buttonOptions;
     private JComponent bannerPannel = null;
+    ButtonPanel buttonPanel = new ButtonPanel();
 
     private InfoPanel(Window p, String t, JComponent bannerPannel, Container jScrollPane, int YES_NO_OPTION) {
         this(p, t, jScrollPane, YES_NO_OPTION);
         this.bannerPannel = bannerPannel;
     }
 
-    public void setMainPanel(Container mainPanel) {
-        this.mainPanel = mainPanel;
-    }
-
     public InfoPanel(Window parent, String title, Container jScrollPane, int buttonOptions) throws HeadlessException {
         super(parent, title);
         this.mainPanel = jScrollPane;
         this.buttonOptions = buttonOptions;
+    }
+
+    public void setMainPanel(Container mainPanel) {
+        this.mainPanel = mainPanel;
     }
 
     @Override
@@ -54,8 +55,6 @@ public class InfoPanel extends StandardDialog {
 //            }
         return bannerPannel;
     }
-
-    ButtonPanel buttonPanel = new ButtonPanel();
 
     @Override
     public JComponent createContentPanel() {
@@ -76,6 +75,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(cancelButton);
 
                 cancelButton.setAction(new AbstractAction() {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(RESULT_CANCELLED);
                         setVisible(false);
@@ -95,6 +95,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(yesButton);
 
                 yesButton.setAction(new AbstractAction("Yes") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.YES_OPTION);
                         setVisible(false);
@@ -106,6 +107,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(noButton);
 
                 noButton.setAction(new AbstractAction("No") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.NO_OPTION);
                         setVisible(false);
@@ -117,6 +119,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(cancelButton);
 
                 cancelButton.setAction(new AbstractAction("Cancel") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.CANCEL_OPTION);
                         setVisible(false);
@@ -134,6 +137,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(yesButton);
 
                 yesButton.setAction(new AbstractAction("Yes") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.YES_OPTION);
                         setVisible(false);
@@ -145,6 +149,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(noButton);
 
                 noButton.setAction(new AbstractAction("No") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.NO_OPTION);
                         setVisible(false);
@@ -160,6 +165,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(yesButton);
 
                 yesButton.setAction(new AbstractAction("OK") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.OK_OPTION);
                         setVisible(false);
@@ -171,6 +177,7 @@ public class InfoPanel extends StandardDialog {
                 buttonPanel.addButton(noButton);
 
                 noButton.setAction(new AbstractAction("Cancel") {
+                    @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.CANCEL_OPTION);
                         setVisible(false);
@@ -193,6 +200,7 @@ public class InfoPanel extends StandardDialog {
         buttonPanel.addButton(newButton);
 
         newButton.setAction(new AbstractAction(name) {
+            @Override
             public void actionPerformed(ActionEvent e) {
 //                LogManager.getLogger().info("setting action: "+action);
                 setDialogResult(action);

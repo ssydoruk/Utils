@@ -27,20 +27,60 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  *
  * @author stepansydoruk
  */
 public class ExtProcess {
 
+    final static Logger logger = LoggerFactory.getLogger(ExtProcess.class);
+    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
+
+    private static ProcessBuilder getProcessBuilder(List<String> sshParameters) throws IOException {
+        if (logger.isDebugEnabled()) {
+            StringBuilder l = new StringBuilder();
+            for (String sshParameter : sshParameters) {
+                if (l.length() > 0) {
+                    l.append(" ");
+                }
+                boolean quotes = false;
+                if (sp.matcher(sshParameter).find()) {
+                    quotes = true;
+                }
+                if (quotes) {
+                    l.append("\"");
+                }
+                l.append(sshParameter);
+                if (quotes) {
+                    l.append("\"");
+                }
+            }
+            logger.debug("Executing: [" + l + "]");
+        }
+
+        return new ProcessBuilder(sshParameters);
+
+    }
+
+    public static Pair<ArrayList<String>, ArrayList<String>> executeCommand(String key, boolean saveStdOut, boolean saveStdErr) throws IOException, InterruptedException {
+        ArrayList<String> cmdParams = new ArrayList<>(Arrays.asList(StringUtils.split(key)));
+
+        logger.debug("Executing [" + StringUtils.join(cmdParams, " "));
+//        logger.trace("executing: " + rsyncParams);
+        ExtProcess proc = new ExtProcess(cmdParams);
+        proc.startProcess(saveStdOut, saveStdErr);
+        int waitFor = proc.waitFor();
+        logger.debug("process terminated, result: " + waitFor);
+
+        return (proc.getExitCode() != 255 && (saveStdOut || saveStdErr))
+                ? new Pair(proc.getSTDOut(), proc.getErrBuf()) : null;
+
+    }
+
     private ProcessBuilder pb;
     private String cmd;
     private long procPID;
-
-    public String getCmd() {
-        return cmd;
-    }
 
     Process proc = null;
     private boolean saveStdErr = false;
@@ -50,7 +90,10 @@ public class ExtProcess {
     private Future<?> stdErrFuture;
     private ExtProcess otherProc;
     private Future<?> pipeFuture;
-    final static Logger logger =  LoggerFactory.getLogger(ExtProcess.class);
+    ThreadedReader stdIn;
+    ThreadedReader stdErr;
+    private IProcessOutputRead stderrReadProc;
+    private IProcessOutputRead stdinReadProc;
 
     public ExtProcess(List<String> tarParams) throws IOException {
         cmd = tarParams.get(0);
@@ -63,6 +106,10 @@ public class ExtProcess {
         this(tarParams);
         otherProc = procSSH;
 
+    }
+
+    public String getCmd() {
+        return cmd;
     }
 
     public ArrayList<String> getSTDOut() {
@@ -89,11 +136,6 @@ public class ExtProcess {
         startProcess(false, false);
     }
 
-    ThreadedReader stdIn;
-    ThreadedReader stdErr;
-
-    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-
     public void startProcess(boolean saveStdOut, boolean saveStdErr) throws IOException {
         proc = pb.start();
         procPID = tryGetPid(proc);
@@ -113,34 +155,6 @@ public class ExtProcess {
             stdErr.setstdinReadProc(stderrReadProc);
         }
         stdErrFuture = executor.submit(stdErr);
-
-    }
-
-    private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
-
-    private static ProcessBuilder getProcessBuilder(List<String> sshParameters) throws IOException {
-        if (logger.isDebugEnabled()) {
-            StringBuilder l = new StringBuilder();
-            for (String sshParameter : sshParameters) {
-                if (l.length() > 0) {
-                    l.append(" ");
-                }
-                boolean quotes = false;
-                if (sp.matcher(sshParameter).find()) {
-                    quotes = true;
-                }
-                if (quotes) {
-                    l.append("\"");
-                }
-                l.append(sshParameter);
-                if (quotes) {
-                    l.append("\"");
-                }
-            }
-            logger.debug("Executing: [" + l + "]");
-        }
-
-        return new ProcessBuilder(sshParameters);
 
     }
 
@@ -221,9 +235,6 @@ public class ExtProcess {
         return null;
     }
 
-    private IProcessOutputRead stderrReadProc;
-    private IProcessOutputRead stdinReadProc;
-
     public IProcessOutputRead getStderrReadProc() {
         return stderrReadProc;
     }
@@ -270,7 +281,7 @@ public class ExtProcess {
                 pid = f.getLong(p);
                 f.setAccessible(false);
             }
-        } catch (Exception ex) {
+        } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
             pid = -1;
         }
 
@@ -301,20 +312,5 @@ public class ExtProcess {
 
         void lineRead(String s);
     };
-
-    public static Pair<ArrayList<String>, ArrayList<String>> executeCommand(String key, boolean saveStdOut, boolean saveStdErr) throws IOException, InterruptedException {
-        ArrayList<String> cmdParams = new ArrayList<>(Arrays.asList(StringUtils.split(key)));
-
-        logger.debug("Executing [" + StringUtils.join(cmdParams, " "));
-//        logger.trace("executing: " + rsyncParams);
-        ExtProcess proc = new ExtProcess(cmdParams);
-        proc.startProcess(saveStdOut, saveStdErr);
-        int waitFor = proc.waitFor();
-        logger.debug("process terminated, result: " + waitFor);
-
-        return (proc.getExitCode() != 255 && (saveStdOut || saveStdErr))
-                ? new Pair(proc.getSTDOut(), proc.getErrBuf()) : null;
-
-    }
 
 }

@@ -18,11 +18,9 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Util {
 
-    public enum OS {
-        WINDOWS, LINUX, MAC, SOLARIS
-    };// Operating systems.
-
     private static OS os = null;
+    private static final Pattern fileBaseName = Pattern.compile("([^\\/]+)$");
+    private static final char quoteChars[] = {'\'', '"', ' '};
 
     public static OS getOS() {
         if (os == null) {
@@ -103,8 +101,6 @@ public class Util {
         return false;
     }
 
-    private static final Pattern fileBaseName = Pattern.compile("([^\\/]+)$");
-
     static public String stripDir(String fileName) {
         return org.apache.commons.io.FilenameUtils.normalizeNoEndSeparator(fileName);
 
@@ -120,13 +116,11 @@ public class Util {
     }
 
     public static ArrayList<String> rSyncAddClause(String fileName, String prefix) {
-        ArrayList<String> ret = new ArrayList<String>();
+        ArrayList<String> ret = new ArrayList<>();
         ret.add("-f");//--filter
         ret.add("+ " + ((prefix != null) ? prefix : "") + fileName);
         return ret;
     }
-
-    private static final char quoteChars[] = {'\'', '"', ' '};
 
     private static boolean charIn(char c, char[] quoteChars) {
         int i = 0;
@@ -194,5 +188,9 @@ public class Util {
 
     public static String pDuration(long ms) {
         return pDuration(ms, true);
+    }
+
+    public enum OS {
+        WINDOWS, LINUX, MAC, SOLARIS
     }
 }

@@ -19,9 +19,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class FileWatcher {
 
+    public static void main(String[] args) throws InterruptedException {
+        FileWatcher fw = (new FileWatcher(new File("/Users/stepan_sydoruk/aa.txt")) {
+            @Override
+            public void doOnChange(File f) {
+                System.out.println("file changed " + f.getAbsolutePath());
+            }
+        }).watch();
+        Thread.sleep(1000000);
+
+    }
+
 //    final static Logger logger = LoggerFactory.getLogger(FileWatcher.class);
     private final File file;
     private long pollTimeMS = 25;
+    private final FileWatcherThread fwt;
 
     public FileWatcher(File file) {
         this.file = file;
@@ -35,28 +47,15 @@ public abstract class FileWatcher {
 
     public abstract void doOnChange(File f);
 
-    private final FileWatcherThread fwt;
-
     public FileWatcher watch() {
         fwt.setDaemon(true);
         fwt.start();
         return this;
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        FileWatcher fw = (new FileWatcher(new File("/Users/stepan_sydoruk/aa.txt")) {
-            @Override
-            public void doOnChange(File f) {
-                System.out.println("file changed " + f.getAbsolutePath());
-            }
-        }).watch();
-        Thread.sleep(1000000);
-
-    }
-
     class FileWatcherThread extends Thread {
 
-        private AtomicBoolean stop = new AtomicBoolean(false);
+        private final AtomicBoolean stop = new AtomicBoolean(false);
 
         public boolean isStopped() {
             return stop.get();

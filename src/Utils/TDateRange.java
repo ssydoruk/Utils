@@ -24,15 +24,78 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  *
  * @author Stepan
  */
 public class TDateRange extends javax.swing.JPanel {
-    
+
+    public static void main(String[] args) {
+        // Trying to set Nimbus look and feel
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
+            System.out.println("Failed to apply Nimbus look and feel");
+
+        }
+        TDateRange tDateRange = new TDateRange();
+        JFrame jf = new JFrame();
+        jf.setLayout(new FlowLayout());
+        jf.setSize(new Dimension(640, 480));
+        jf.add(tDateRange);
+        jf.setVisible(true);
+        jf.setDefaultCloseOperation(EXIT_ON_CLOSE);
+    }
+
+    public static long getUTCTime(DateTimePicker dtp, int adjustment) {
+        return getUtcTime(dtp.getDateTimePermissive(), zoneId, adjustment);
+    }
+
+    public static void setTimeRange(DateTimePicker dtp, long time) {
+        ZonedDateTime zoneDateTime = (Instant.ofEpochMilli(time)).atZone(zoneId);
+
+        dtp.setDateTimePermissive(zoneDateTime.toLocalDateTime());
+        DatePickerSettings dateSettings = dtp.getDatePicker().getSettings();
+//        dateSettings.setDateRangeLimits(zoneDateTime.toLocalDate(), zoneDateTime.toLocalDate());
+
+//            long toEpochDay = dtFrom.getDatePicker().getDate().atTime(LocalTime.MIN)
+//            inquirer.inquirer.logger.info("getTimeRange toEpochDay " + toEpochDay);
+//            long toNanoOfDay = dtFrom.getTimePicker().getTime().toNanoOfDay();
+//            inquirer.inquirer.logger.info("getTimeRange toNanoOfDay " + toEpochDay +"total: "+toEpochDay*1000000+toNanoOfDay);
+//            instantFrom = dtLocalFrom.toInstant(ZoneOffset.UTC);
+//            inquirer.inquirer.logger.info("instant: "+instantFrom+" getTimeRange " + instantFrom.getEpochSecond() + " to " + instantFrom.getNano());
+    }
+
+    private IRefresh refreshCB = null;
+
+    private JButton refreshBt;
+
+    /**
+     * Creates new form TDateRange
+     */
+    JLabel jlFrom;
+    JLabel jlTo;
+    private DateTimePicker dtFrom;
+    private DateTimePicker dtTo;
+
+    public TDateRange() {
+        this(true);
+    }
+
+    public TDateRange(boolean showSeconds) {
+        super();
+        initComponents();
+        initDates(showSeconds);
+
+    }
+
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled); //To change body of generated methods, choose Tools | Templates.
@@ -55,13 +118,6 @@ public class TDateRange extends javax.swing.JPanel {
         jlTo.setEnabled(enabled);
     }
 
-    public static interface IRefresh {
-
-        UTCTimeRange Refresh();
-    };
-
-    private IRefresh refreshCB = null;
-
     public IRefresh getRefreshCB() {
         return refreshCB;
     }
@@ -80,25 +136,6 @@ public class TDateRange extends javax.swing.JPanel {
                 }
             }
         });
-    }
-
-    private JButton refreshBt;
-
-    /**
-     * Creates new form TDateRange
-     */
-    JLabel jlFrom;
-    JLabel jlTo;
-
-    public TDateRange() {
-        this(true);
-    }
-
-    public TDateRange(boolean showSeconds) {
-        super();
-        initComponents();
-        initDates(showSeconds);
-
     }
 
     private void initDates(boolean showSeconds) {
@@ -122,9 +159,6 @@ public class TDateRange extends javax.swing.JPanel {
         pDates.setMaximumSize(new Dimension(pDates.getMinimumSize().width, pDates.getMinimumSize().height));
         add(pDates);
     }
-
-    private DateTimePicker dtFrom;
-    private DateTimePicker dtTo;
 
     private DateTimePicker newPicker() {
         return newPicker("HH:mm:ss");
@@ -157,28 +191,6 @@ public class TDateRange extends javax.swing.JPanel {
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
     }// </editor-fold>//GEN-END:initComponents
 
-    public static void main(String[] args) {
-        // Trying to set Nimbus look and feel
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception ex) {
-            System.out.println( "Failed to apply Nimbus look and feel");
-
-        }
-        TDateRange tDateRange = new TDateRange();
-        JFrame jf = new JFrame();
-        jf.setLayout(new FlowLayout());
-        jf.setSize(new Dimension(640, 480));
-        jf.add(tDateRange);
-        jf.setVisible(true);
-        jf.setDefaultCloseOperation(EXIT_ON_CLOSE);
-    }
-
     public UTCTimeRange getTimeRange() {
         if (dtFrom.isEnabled() && dtTo.isEnabled()) {
             UTCTimeRange range = new UTCTimeRange();
@@ -208,25 +220,6 @@ public class TDateRange extends javax.swing.JPanel {
         return range;
     }
 
-    public static long getUTCTime(DateTimePicker dtp, int adjustment) {
-        return getUtcTime(dtp.getDateTimePermissive(), zoneId, adjustment);
-    }
-
-    public static void setTimeRange(DateTimePicker dtp, long time) {
-        ZonedDateTime zoneDateTime = (Instant.ofEpochMilli(time)).atZone(zoneId);
-
-        dtp.setDateTimePermissive(zoneDateTime.toLocalDateTime());
-        DatePickerSettings dateSettings = dtp.getDatePicker().getSettings();
-//        dateSettings.setDateRangeLimits(zoneDateTime.toLocalDate(), zoneDateTime.toLocalDate());
-
-//            long toEpochDay = dtFrom.getDatePicker().getDate().atTime(LocalTime.MIN)
-//            inquirer.inquirer.logger.info("getTimeRange toEpochDay " + toEpochDay);
-//            long toNanoOfDay = dtFrom.getTimePicker().getTime().toNanoOfDay();
-//            inquirer.inquirer.logger.info("getTimeRange toNanoOfDay " + toEpochDay +"total: "+toEpochDay*1000000+toNanoOfDay);
-//            instantFrom = dtLocalFrom.toInstant(ZoneOffset.UTC);
-//            inquirer.inquirer.logger.info("instant: "+instantFrom+" getTimeRange " + instantFrom.getEpochSecond() + " to " + instantFrom.getNano());
-    }
-
     public void setTimeRange(UTCTimeRange timeRange) {
         dtFrom.setEnabled(!(timeRange == null));
         dtTo.setEnabled(!(timeRange == null));
@@ -241,6 +234,11 @@ public class TDateRange extends javax.swing.JPanel {
             setTimeRange(dtTo, timeRange.getEnd());
 
         }
+    }
+
+    public static interface IRefresh {
+
+        UTCTimeRange Refresh();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
