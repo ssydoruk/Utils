@@ -14,7 +14,6 @@ import java.awt.HeadlessException;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -30,6 +29,7 @@ public class InfoPanel extends StandardDialog {
     private final int buttonOptions;
     private JComponent bannerPannel = null;
     ButtonPanel buttonPanel = new ButtonPanel();
+    JButton okButton;
 
     private InfoPanel(Window p, String t, JComponent bannerPannel, Container jScrollPane, int YES_NO_OPTION) {
         this(p, t, jScrollPane, YES_NO_OPTION);
@@ -42,6 +42,12 @@ public class InfoPanel extends StandardDialog {
         this.buttonOptions = buttonOptions;
     }
 
+    public InfoPanel(Window parent, int buttonOptions) throws HeadlessException {
+        super(parent);
+        this.buttonOptions = buttonOptions;
+        this.mainPanel =new JPanel(new BorderLayout());
+    }
+    
     public void setMainPanel(Container mainPanel) {
         this.mainPanel = mainPanel;
     }
@@ -58,8 +64,10 @@ public class InfoPanel extends StandardDialog {
 
     @Override
     public JComponent createContentPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+//        JPanel panel = new JPanel(new BorderLayout(10, 10));
+//        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+        JPanel panel = new JPanel(new BorderLayout());
 
         panel.add(mainPanel, BorderLayout.CENTER);
         return panel;
@@ -161,10 +169,10 @@ public class InfoPanel extends StandardDialog {
                 break;
             }
             case JOptionPane.OK_CANCEL_OPTION: {
-                JButton yesButton = new JButton();
-                buttonPanel.addButton(yesButton);
+                okButton = new JButton();
+                buttonPanel.addButton(okButton);
 
-                yesButton.setAction(new AbstractAction("OK") {
+                okButton.setAction(new AbstractAction("OK") {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         setDialogResult(JOptionPane.OK_OPTION);
@@ -213,8 +221,16 @@ public class InfoPanel extends StandardDialog {
 
     public void showModal() {
         pack();
+        invalidate();
 //        ScreenInfo.CenterWindow(allFiles);
         setModal(true);
         ScreenInfo.setVisible(getParent(), this, true);
+    }
+
+    public void showModal(JPanel topPan, String title) {
+        mainPanel.removeAll();
+        mainPanel.add(topPan);
+        setTitle(title);
+        showModal();
     }
 }

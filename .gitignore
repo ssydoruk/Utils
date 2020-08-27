@@ -4,3 +4,5 @@ dist
 build.xml
 /nbproject/private/
 /nbproject/
+target
+src/.DS_Store
