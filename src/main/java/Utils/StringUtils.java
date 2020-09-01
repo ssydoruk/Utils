@@ -29,4 +29,28 @@ public class StringUtils {
         return (new GsonBuilder().setPrettyPrinting().disableInnerClassSerialization()).create().toJson(obj);
     }
 
+    static public int CharOccurences(StringBuilder s, char c) {
+        int ret = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == c) {
+                ret++;
+            }
+        }
+        return ret;
+    }
+
+    static public int CountStrings(StringBuilder sipBuf, String search) {
+        int ret = 0, idx = 0;
+
+        while (true) {
+            if ((idx = sipBuf.indexOf(search, idx)) >= 0) {
+                ret++;
+                idx += search.length();
+            } else {
+                break;
+            }
+
+        }
+        return ret;
+    }
 }
