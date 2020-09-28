@@ -32,7 +32,7 @@ public class ThreadedReader implements Runnable {
         this.stream = new BufferedReader(new InputStreamReader(in));
         this.cmd = cmd;
         this.streamName = stream;
-        logger.debug("started reader for cmd: " + cmd + " stream:" + streamName);
+        logger.debug(thrID() +"started reader for cmd: " + cmd + " stream:" + streamName);
     }
 
     ThreadedReader(InputStream in, String cmd, String stream, boolean saveStdOut) {
@@ -48,11 +48,13 @@ public class ThreadedReader implements Runnable {
     @Override
     public void run() {
         if (stream != null) {
+                    logger.debug(thrID() +"run cmd: " + cmd + " stream:" + streamName);
+
             String s;
             try {
                 synchronized (this) {
                     while ((s = stream.readLine()) != null) {
-                        logger.debug(cmd + "_" + streamName + ": " + s);
+                        logger.debug(thrID() + cmd + "_" + streamName + ": " + s);
                         if (saveOutput) {
                             synchronized (outBuf) {
                                 outBuf.add(s);
@@ -66,13 +68,17 @@ public class ThreadedReader implements Runnable {
             } catch (IOException ex) {
                 logger.error("", ex);
             }
-            logger.debug(cmd + "_" + streamName + ": exited");
+            logger.debug(thrID() + cmd + "_" + streamName + ": exited");
         }
     }
 
     void setstdinReadProc(ExtProcess.IProcessOutputRead stdinReadProc) {
         this.stdinReadProc = stdinReadProc;
 
+    }
+
+    private String thrID() {
+        return "thr:" + Thread.currentThread().getId() + " ";
     }
 
 }

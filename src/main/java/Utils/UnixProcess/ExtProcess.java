@@ -136,10 +136,23 @@ public class ExtProcess {
         startProcess(false, false);
     }
 
-    public void startProcess(boolean saveStdOut, boolean saveStdErr) throws IOException {
+    /**
+     * Start process but do not start stream reader processes
+     *
+     * @throws IOException
+     */
+    public void startDaemon() throws IOException {
+        runProcess();
+    }
+
+    public void runProcess() throws IOException {
         proc = pb.start();
         procPID = tryGetPid(proc);
         logger.info("started process pid: " + procPID);
+    }
+
+    public void startProcess(boolean saveStdOut, boolean saveStdErr) throws IOException {
+        runProcess();
         if (otherProc != null) {
             PipeConnector pc = new PipeConnector(otherProc.getInputStream(), proc.getOutputStream());
             pipeFuture = executor.submit(pc);
@@ -193,26 +206,38 @@ public class ExtProcess {
                 } catch (InterruptedException interruptedException) {
                     exitCode = 255;
                 }
+                try {
+                    stdErrFuture.get(cnt, tu);
+                } catch (ExecutionException ex) {
+                    logger.error("", ex);
+                } catch (TimeoutException e) {
+                    logger.error("Timeout while waiting for StdErr to read", e);
+                    stdErrFuture.cancel(true);
+                }
+                try {
+                    stdInFuture.get(cnt, tu);
+                } catch (ExecutionException ex) {
+                    logger.error("", ex);
+                } catch (TimeoutException e) {
+                    logger.error("Timeout while waiting for StdIn to read", e);
+                    stdInFuture.cancel(true);
+                }
+
             } else {
                 exitCode = proc.waitFor();
+                try {
+                    stdErrFuture.get();
+                } catch (ExecutionException ex) {
+                    logger.error("", ex);
+                }
+                try {
+                    stdInFuture.get();
+                } catch (ExecutionException ex) {
+                    logger.error("", ex);
+                }
+
             }
-            logger.debug("Main process terminated with code " + exitCode);
-            try {
-                stdErrFuture.get(5, TimeUnit.SECONDS);
-            } catch (ExecutionException ex) {
-                logger.error("", ex);
-            } catch (TimeoutException e) {
-                logger.error("Timeout while waiting for StdErr to read", e);
-                stdErrFuture.cancel(true);
-            }
-            try {
-                stdInFuture.get(5, TimeUnit.SECONDS);
-            } catch (ExecutionException ex) {
-                logger.error("", ex);
-            } catch (TimeoutException e) {
-                logger.error("Timeout while waiting for StdIn to read", e);
-                stdInFuture.cancel(true);
-            }
+            logger.debug(getPID() + "process terminated with code " + exitCode);
             closeStreams();
             logger.debug("Ret code: " + exitCode);
         }
@@ -302,7 +327,7 @@ public class ExtProcess {
     public void cancel() {
         if (proc.isAlive()) {
             proc.destroy();
-            logger.info("destroying proc " + proc.toString());
+            logger.info("destroying proc " + getPID() + proc.toString());
             killByPID(procPID);
         }
         terminateChildren();
@@ -313,4 +338,7 @@ public class ExtProcess {
         void lineRead(String s);
     };
 
+    private String getPID() {
+        return "pid:" + procPID + " ";
+    }
 }
