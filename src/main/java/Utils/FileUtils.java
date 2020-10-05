@@ -6,6 +6,7 @@
 package Utils;
 
 import java.io.File;
+import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,5 +38,14 @@ public class FileUtils {
             logger.debug("directory " + " created: " + mkdirs);
         }
 
+    }
+
+    private static String wd = null;
+
+    public static String getCurrentDirectory() {
+        if (wd == null) {
+            wd = Paths.get(".").toAbsolutePath().normalize().toString();
+        }
+        return wd;
     }
 }
