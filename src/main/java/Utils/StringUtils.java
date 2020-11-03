@@ -53,4 +53,24 @@ public class StringUtils {
         }
         return ret;
     }
+
+    static public boolean isNumeric(String s) {
+        if (s != null && !s.isEmpty()) {
+            boolean hasDigit = false;
+            for (char c : s.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    hasDigit = true;
+                } else if (Character.isSpaceChar(c) || c == '.' || c == '-') {
+                    continue;
+                } else if (Character.isAlphabetic(c)) {
+                    return false;
+                }
+            }
+            if (hasDigit) {
+                return true;
+            }
+        }
+        return false;
+
+    }
 }

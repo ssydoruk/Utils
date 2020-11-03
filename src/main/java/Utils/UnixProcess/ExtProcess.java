@@ -148,7 +148,7 @@ public class ExtProcess {
     public void runProcess() throws IOException {
         proc = pb.start();
         procPID = tryGetPid(proc);
-        logger.info("started process pid: " + procPID);
+        logger.debug("started process pid: " + procPID);
     }
 
     public void startProcess(boolean saveStdOut, boolean saveStdErr) throws IOException {
