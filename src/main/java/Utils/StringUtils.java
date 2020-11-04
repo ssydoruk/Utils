@@ -25,8 +25,19 @@ public class StringUtils {
         return false;
     }
 
+    static public String toJson(Object obj, boolean prettyPrint, boolean disableInnerClassSerialization) {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        if (prettyPrint) {
+            gsonBuilder.setPrettyPrinting();
+        }
+        if (disableInnerClassSerialization) {
+            gsonBuilder.disableInnerClassSerialization();
+        }
+        return gsonBuilder.create().toJson(obj);
+    }
+
     static public String toJson(Object obj) {
-        return (new GsonBuilder().setPrettyPrinting().disableInnerClassSerialization()).create().toJson(obj);
+        return toJson(obj, true, true);
     }
 
     static public int CharOccurences(StringBuilder s, char c) {

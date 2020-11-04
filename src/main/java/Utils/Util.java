@@ -6,6 +6,7 @@
 package Utils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -192,5 +193,9 @@ public class Util {
 
     public enum OS {
         WINDOWS, LINUX, MAC, SOLARIS
+    }
+
+    public static String findFirst(List<String> get) {
+        return (get != null && !get.isEmpty()) ? get.get(0) : null;
     }
 }
