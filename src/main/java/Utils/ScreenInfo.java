@@ -149,9 +149,11 @@ public class ScreenInfo {
 
     public static void windowOccupyTopThird(Window rptForm) {
         Rectangle windowScreenBounds = getWindowScreenBounds(rptForm);
-        rptForm.setLocation(windowScreenBounds.x,
-                windowScreenBounds.y);
-        rptForm.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
+        if (windowScreenBounds != null) {
+            rptForm.setLocation(windowScreenBounds.x,
+                    windowScreenBounds.y);
+            rptForm.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
+        }
 
     }
 
