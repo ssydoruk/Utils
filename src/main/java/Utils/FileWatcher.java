@@ -53,6 +53,10 @@ public abstract class FileWatcher {
         return this;
     }
 
+    public void stopThread() {
+        fwt.stopThread();
+    }
+
     class FileWatcherThread extends Thread {
 
         private final AtomicBoolean stop = new AtomicBoolean(false);

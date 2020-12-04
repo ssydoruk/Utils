@@ -34,7 +34,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
     private boolean isColumnDataIncluded;
     private boolean isOnlyAdjustLarger;
     private boolean isDynamicAdjustment;
-    private Map<TableColumn, Integer> columnSizes = new HashMap<>();
+    final private Map<TableColumn, Integer> columnSizes = new HashMap<>();
     private int maxColumnWidth = 0;
 
     /*
@@ -79,7 +79,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 	 *  Adjust the widths of all the columns in the table
      */
     public void adjustColumns() {
-//        logger.debug("Adjust columns ");
+        System.out.println("Adjust columns ");
         table.setVisible(false);
         TableColumnModel tcm = table.getColumnModel();
 
@@ -93,7 +93,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
     /*
 	 *  Adjust the width of the specified column in the table
      */
-    public void adjustColumn(final int column) {
+    private void adjustColumn(final int column) {
         TableColumn tableColumn = table.getColumnModel().getColumn(column);
 
         if (!tableColumn.getResizable()) {
@@ -161,11 +161,11 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
         //  Inovke the renderer for the cell to calculate the preferred width
         TableModel model = table.getModel();
         if (model.getRowCount() > 0 && model.getColumnCount() > 0 && column >= 0 && row >= 0) {
-            TableCellRenderer cellRenderer = table.getCellRenderer(row, column);
-            Component c = table.prepareRenderer(cellRenderer, row, column);
-            int width = c.getPreferredSize().width + table.getIntercellSpacing().width;
-
-            return width;
+            Object val = table.getValueAt(row, column);
+            Graphics graphics = table.getGraphics();
+            if (graphics != null && val != null) {
+                return graphics.getFontMetrics().stringWidth(val.toString()) + table.getIntercellSpacing().width;
+            }
         }
         return 80;
     }
@@ -187,7 +187,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
             width = Math.max(width, tableColumn.getPreferredWidth());
         }
 
-        columnSizes.put(tableColumn, new Integer(tableColumn.getWidth()));
+        columnSizes.put(tableColumn, tableColumn.getWidth());
 
         table.getTableHeader().setResizingColumn(tableColumn);
         tableColumn.setWidth(width);
@@ -213,7 +213,7 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
 
         if (width != null) {
             table.getTableHeader().setResizingColumn(tableColumn);
-            tableColumn.setWidth(width.intValue());
+            tableColumn.setWidth(width);
         }
     }
 
