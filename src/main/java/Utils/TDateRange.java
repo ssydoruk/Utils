@@ -7,23 +7,12 @@ package Utils;
 
 import static Utils.UTCTimeRange.getUtcTime;
 import static Utils.UTCTimeRange.zoneId;
-import com.github.lgooddatepicker.components.DatePickerSettings;
-import com.github.lgooddatepicker.components.DateTimePicker;
-import com.github.lgooddatepicker.components.TimePickerSettings;
-import com.github.lgooddatepicker.optionalusertools.PickerUtilities;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import com.github.lgooddatepicker.components.*;
+import com.github.lgooddatepicker.optionalusertools.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.time.*;
+import javax.swing.*;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 /**

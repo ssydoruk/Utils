@@ -23,7 +23,7 @@ import javax.swing.table.*;
  *  or more of the other columns must decrease. Because of this the resize mode
  *  of RESIZE_ALL_COLUMNS will work the best.
  */
-public class TableColumnAdjuster implements PropertyChangeListener, TableModelListener {
+public final class TableColumnAdjuster implements PropertyChangeListener, TableModelListener {
 //    final static Logger logger = LoggerFactory.getLogger(TableColumnAdjuster.class);
 
     private boolean resizeColumns = true;
@@ -162,9 +162,8 @@ public class TableColumnAdjuster implements PropertyChangeListener, TableModelLi
         TableModel model = table.getModel();
         if (model.getRowCount() > 0 && model.getColumnCount() > 0 && column >= 0 && row >= 0) {
             Object val = table.getValueAt(row, column);
-            Graphics graphics = table.getGraphics();
-            if (graphics != null && val != null) {
-                return graphics.getFontMetrics().stringWidth(val.toString()) + table.getIntercellSpacing().width;
+            if (val != null) {
+                return table.getFontMetrics(table.getFont()).stringWidth(val.toString()) + table.getIntercellSpacing().width;
             }
         }
         return 80;

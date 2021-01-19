@@ -6,6 +6,7 @@
 package Utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class FileWatcher {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         FileWatcher fw = (new FileWatcher(new File("/Users/stepan_sydoruk/aa.txt")) {
             @Override
             public void doOnChange(File f) {
@@ -35,12 +36,12 @@ public abstract class FileWatcher {
     private long pollTimeMS = 25;
     private final FileWatcherThread fwt;
 
-    public FileWatcher(File file) {
-        this.file = file;
+    public FileWatcher(File file) throws IOException {
+        this.file = file.getCanonicalFile();
         fwt = new FileWatcherThread();
     }
 
-    public FileWatcher(File file, long _pollTimeMS) {
+    public FileWatcher(File file, long _pollTimeMS) throws IOException {
         this(file);
         pollTimeMS = _pollTimeMS;
     }
@@ -53,6 +54,10 @@ public abstract class FileWatcher {
         return this;
     }
 
+    public void pause(boolean isPause) {
+        fwt.setPause(isPause);
+    }
+
     public void stopThread() {
         fwt.stopThread();
     }
@@ -60,6 +65,7 @@ public abstract class FileWatcher {
     class FileWatcherThread extends Thread {
 
         private final AtomicBoolean stop = new AtomicBoolean(false);
+        private final AtomicBoolean paused = new AtomicBoolean(false);
 
         public boolean isStopped() {
             return stop.get();
@@ -82,7 +88,6 @@ public abstract class FileWatcher {
                         return;
                     }
                     if (key == null) {
-                        Thread.yield();
                         continue;
                     }
 
@@ -94,22 +99,28 @@ public abstract class FileWatcher {
                         Path filename = ev.context();
 
                         if (kind == StandardWatchEventKinds.OVERFLOW) {
-                            Thread.yield();
                             continue;
                         } else if (kind == java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
                                 && filename.toString().equals(file.getName())) {
-                            doOnChange(file);
+                            if (paused.get() == true) {
+                                paused.set(false);
+                            } else {
+                                doOnChange(file);
+                            }
                         }
                         boolean valid = key.reset();
                         if (!valid) {
                             break;
                         }
                     }
-                    Thread.yield();
                 }
             } catch (Throwable e) {
                 // Log or rethrow the error
             }
+        }
+
+        private void setPause(boolean pause) {
+            paused.set(pause);
         }
 
     }
