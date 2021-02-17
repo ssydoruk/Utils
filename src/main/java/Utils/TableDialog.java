@@ -66,4 +66,4 @@ public class TableDialog extends Utils.InfoPanel {
         return getDialogResult() == JOptionPane.OK_OPTION;
     }
 
-};
+}

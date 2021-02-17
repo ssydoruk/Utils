@@ -77,9 +77,7 @@ public class StringUtils {
                     return false;
                 }
             }
-            if (hasDigit) {
-                return true;
-            }
+            return hasDigit;
         }
         return false;
 

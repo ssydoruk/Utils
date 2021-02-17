@@ -79,11 +79,11 @@ public class GridEditor extends StandardDialog {
     }
 
     private int closeCause = JOptionPane.CANCEL_OPTION;
-    private JTable tab;
+    private final JTable tab;
     private String selectedFormat;
-    private TableColumnAdjuster tca;
+    private final TableColumnAdjuster tca;
     private boolean dataChanged;
-    private Window theParent;
+    private final Window theParent;
     private int mandatoryColumns = 0;
     private IAddChoices addChoices = null;
     ButtonPanel buttonPanel;
@@ -379,10 +379,7 @@ public class GridEditor extends StandardDialog {
             fc.setFileFilter(new FileFilter() {
                 @Override
                 public boolean accept(File f) {
-                    if (f.getName().toLowerCase().endsWith(".csv")) {
-                        return true;
-                    }
-                    return false;
+                    return f.getName().toLowerCase().endsWith(".csv");
                 }
 
                 @Override
@@ -525,7 +522,7 @@ public class GridEditor extends StandardDialog {
 
     public interface IAddChoices {
 
-        public HashSet<String> getAddChoices();
+        HashSet<String> getAddChoices();
 
     }
 

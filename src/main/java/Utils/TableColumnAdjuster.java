@@ -28,8 +28,8 @@ public final class TableColumnAdjuster implements PropertyChangeListener, TableM
 
     private boolean resizeColumns = true;
 
-    private JTable table;
-    private int spacing;
+    private final JTable table;
+    private final int spacing;
     private boolean isColumnHeaderIncluded;
     private boolean isColumnDataIncluded;
     private boolean isOnlyAdjustLarger;

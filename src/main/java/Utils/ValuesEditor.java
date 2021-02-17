@@ -45,9 +45,9 @@ public class ValuesEditor extends StandardDialog {
 
     final static Logger logger = LoggerFactory.getLogger(ValuesEditor.class);
     private int closeCause = JOptionPane.CANCEL_OPTION;
-    private JTable tab;
+    private final JTable tab;
     private final String selectedFormat;
-    private TableColumnAdjuster tca;
+    private final TableColumnAdjuster tca;
     private JButton upButton;
     private JButton downButton;
     private boolean dataChanged;
@@ -382,7 +382,7 @@ public class ValuesEditor extends StandardDialog {
 
     public interface IAddChoices {
 
-        public HashSet<String> getAddChoices();
+        HashSet<String> getAddChoices();
 
     }
 

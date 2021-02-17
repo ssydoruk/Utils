@@ -21,9 +21,9 @@ public class ThreadedReader implements Runnable {
 
     final static Logger logger = LoggerFactory.getLogger(ThreadedReader.class);
 
-    private BufferedReader stream; // no need to buffer it
-    private String cmd;
-    private String streamName;
+    private final BufferedReader stream; // no need to buffer it
+    private final String cmd;
+    private final String streamName;
     private boolean saveOutput = false;
     private ArrayList<String> outBuf;
     private ExtProcess.IProcessOutputRead stdinReadProc;

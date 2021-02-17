@@ -21,7 +21,7 @@ public class Util {
 
     private static OS os = null;
     private static final Pattern fileBaseName = Pattern.compile("([^\\/]+)$");
-    private static final char quoteChars[] = {'\'', '"', ' '};
+    private static final char[] quoteChars = {'\'', '"', ' '};
 
     public static OS getOS() {
         if (os == null) {
@@ -82,18 +82,12 @@ public class Util {
         if (val != null && !val.isEmpty()) {
 //                            inquirer.inquirer.logger.debug("search cell:" + search + " " + matchWholeWordSelected + " " + " " +pt + ": [" + val);
             if (pt != null) {
-                if (pt.matcher(val).find()) {
-                    return true;
-                }
+                return pt.matcher(val).find();
             } else {
                 if (matchWholeWordSelected) {
-                    if (val.equalsIgnoreCase(search)) {
-                        return true;
-                    }
+                    return val.equalsIgnoreCase(search);
                 } else {
-                    if (val.toLowerCase().contains(search)) {
-                        return true;
-                    }
+                    return val.toLowerCase().contains(search);
 
                 }
 

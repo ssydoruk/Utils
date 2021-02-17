@@ -78,13 +78,13 @@ public class ExtProcess {
 
     }
 
-    private ProcessBuilder pb;
-    private String cmd;
+    private final ProcessBuilder pb;
+    private final String cmd;
     private long procPID;
 
     Process proc = null;
-    private boolean saveStdErr = false;
-    private boolean saveStdOut = false;
+    private final boolean saveStdErr = false;
+    private final boolean saveStdOut = false;
     private int exitCode;
     private Future<?> stdInFuture;
     private Future<?> stdErrFuture;
@@ -333,10 +333,10 @@ public class ExtProcess {
         terminateChildren();
     }
 
-    public static interface IProcessOutputRead {
+    public interface IProcessOutputRead {
 
         void lineRead(String s);
-    };
+    }
 
     private String getPID() {
         return "pid:" + procPID + " ";

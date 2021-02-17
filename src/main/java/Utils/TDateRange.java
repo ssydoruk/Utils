@@ -225,7 +225,7 @@ public class TDateRange extends javax.swing.JPanel {
         }
     }
 
-    public static interface IRefresh {
+    public interface IRefresh {
 
         UTCTimeRange Refresh();
     }
