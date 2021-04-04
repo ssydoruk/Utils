@@ -6,3 +6,5 @@ build.xml
 /nbproject/
 target
 src/.DS_Store
+.idea/
+*.log

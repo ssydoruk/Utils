@@ -1,0 +1,242 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Utils.UnixProcess;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.channel.ClientChannel;
+import org.apache.sshd.client.channel.ClientChannelEvent;
+import org.apache.sshd.client.session.ClientSession;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author stepan_sydoruk
+ */
+public class SSHClientWrapper {
+    private final long defaultTimeoutSeconds;
+
+    public SshClient getClient() {
+        return client;
+    }
+
+    public long getDefaultTimeoutSeconds() {
+        return defaultTimeoutSeconds;
+    }
+    private Future<?> stdInFuture;
+    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+
+    private static class SSHServer {
+        private final String username;
+        private final String password;
+        private final String host;
+        private final int port;
+
+
+
+        public String getUsername() {
+            return username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public SSHServer(String username, String password, String host, int port) {
+            this.username = username;
+            this.password = password;
+            this.host = host;
+            this.port = port;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            SSHServer sshServer = (SSHServer) o;
+
+            if (port != sshServer.port) return false;
+            if (!username.equals(sshServer.username)) return false;
+            if (password != null ? !password.equals(sshServer.password) : sshServer.password != null) return false;
+            return host.equals(sshServer.host);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = username.hashCode();
+            result = 31 * result + (password != null ? password.hashCode() : 0);
+            result = 31 * result + host.hashCode();
+            result = 31 * result + port;
+            return result;
+        }
+    }
+
+    private static class SSHSessions extends HashMap<SSHServer, ClientSession> {
+
+        public SSHSessions() {
+            super();
+        }
+
+        synchronized public ClientSession getAuthenticatedSession(SSHClientWrapper wrapper, SSHServer server) throws IOException {
+            ClientSession ret = null;
+
+            if (!isEmpty() && containsKey(server)) {
+                ret = get(server);
+            }
+            if (ret == null) {
+                ret = startSession(wrapper, server);
+                put(server, ret);
+            }
+            return ret;
+        }
+
+        private ClientSession startSession(SSHClientWrapper wrapper, SSHServer server) throws IOException {
+            wrapper.getClient()
+                    .connect(server.getUsername(), server.getHost(), server.getPort());
+            ClientSession session = wrapper.getClient()
+                    .connect(server.getUsername(), server.getHost(), server.getPort())
+                    .verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS).getSession();
+            session.addPasswordIdentity(server.getPassword());
+            session.auth().verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS);
+
+            return session;
+        }
+    }
+
+    private static SshClient client = null;
+
+    SSHSessions sshSessions = new SSHSessions();
+
+    public SSHClientWrapper(long defaultTimeoutSeconds) {
+        client = SshClient.setUpDefaultClient();
+        client.start();
+        this.defaultTimeoutSeconds = defaultTimeoutSeconds;
+    }
+
+
+    public RemoteExecutionResult executeRemoteCommand(String username, String password,
+                                     String host, int port, String command) throws IOException {
+
+        ClientSession session = sshSessions.getAuthenticatedSession(this, new SSHServer(username, password, host, port));
+
+        /*
+        Below synchronization should ensure sequential query to the same server.
+        Different servers should be queried in parallel since session will be different for each
+        combination of parameters
+         */
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (session) {
+            RemoteExecutionResult ret = new RemoteExecutionResult();
+            ret.setRetCode(0);
+
+            try (ByteArrayOutputStream stdOutStream = new ByteArrayOutputStream(1024);
+                 ByteArrayOutputStream stdErrStream = new ByteArrayOutputStream();
+                 ClientChannel channel = session.createExecChannel(command)) {
+                channel.setOut(stdOutStream);
+                channel.setErr(stdErrStream);
+
+                try {
+                    channel.open().verify(defaultTimeoutSeconds, TimeUnit.SECONDS);
+                    try (OutputStream pipedIn = channel.getInvertedIn()) {
+                        pipedIn.write(command.getBytes());
+                        pipedIn.flush();
+                    }
+
+                    channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
+                            TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds));
+                    ret.setRetCode(channel.getExitStatus());
+                    String responseString = new String(stdOutStream.toString("utf-8"));
+                    if(StringUtils.isNotBlank(responseString)){
+                        ret.setStdout(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
+                    }
+                     responseString = new String(stdErrStream.toString("utf-8"));
+                    if(StringUtils.isNotBlank(responseString)){
+                        ret.setStderr(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
+                    }
+                } finally {
+                    channel.close(false);
+                }
+            }
+            return ret;
+        }
+    }
+
+    public RemoteExecutionResult executePipedRemoteCommand(String username, String password,
+                                                      String host, int port, String command,
+                                                           ThreadedOutputStreamReader outputReader) throws IOException {
+
+        ClientSession session = sshSessions.getAuthenticatedSession(this, new SSHServer(username, password, host, port));
+
+        /*
+        Below synchronization should ensure sequential query to the same server.
+        Different servers should be queried in parallel since session will be different for each
+        combination of parameters
+         */
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (session) {
+            RemoteExecutionResult ret = new RemoteExecutionResult();
+            ret.setRetCode(0);
+
+            try (
+                 ByteArrayOutputStream stdErrStream = new ByteArrayOutputStream();
+                 ClientChannel channel = session.createExecChannel(command)) {
+                channel.setOut(outputReader.getOutputStream());
+                channel.setErr(stdErrStream);
+
+                try {
+                    channel.open().verify(defaultTimeoutSeconds, TimeUnit.SECONDS);
+                    try (OutputStream pipedIn = channel.getInvertedIn()) {
+                        pipedIn.write(command.getBytes());
+                        pipedIn.flush();
+                    }
+                    stdInFuture = executor.submit(outputReader);
+                    // todo: better handling of timeout for file transfer completion
+                    channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
+                            TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds)*100000);
+                    ret.setRetCode(channel.getExitStatus());
+                    String responseString ;
+                    responseString = new String(stdErrStream.toString("utf-8"));
+                    if(StringUtils.isNotBlank(responseString)){
+                        ret.setStderr(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
+                    }
+                } finally {
+                    channel.close(false);
+                }
+            }
+            return ret;
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        SSHClientWrapper cl = new SSHClientWrapper(20000);
+        ThreadedOutputStreamReader stdoutReader = new ThreadedUnTarGZ("/Users/stepan_sydoruk/tmp");
+        cl.executePipedRemoteCommand(
+                "ssydoruk",
+                "pq1617uw",
+                "192.168.64.10",
+                22,
+                "tar -C /applog/gcti/app_test -cz app_test.20210403_002535_895.log app_test_sip-001.20210402_233559_293.log",
+                stdoutReader);
+        System.out.println("All done");
+    }
+}

@@ -26,7 +26,7 @@ public class ThreadedReader implements Runnable {
     private final String streamName;
     private boolean saveOutput = false;
     private ArrayList<String> outBuf;
-    private ExtProcess.IProcessOutputRead stdinReadProc;
+    private IProcessOutputRead stdinReadProc;
 
     public ThreadedReader(InputStream in, String cmd, String stream) {
         this.stream = new BufferedReader(new InputStreamReader(in));
@@ -72,7 +72,7 @@ public class ThreadedReader implements Runnable {
         }
     }
 
-    void setstdinReadProc(ExtProcess.IProcessOutputRead stdinReadProc) {
+    void setstdinReadProc(IProcessOutputRead stdinReadProc) {
         this.stdinReadProc = stdinReadProc;
 
     }

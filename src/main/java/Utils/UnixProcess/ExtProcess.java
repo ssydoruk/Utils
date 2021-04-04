@@ -9,6 +9,10 @@ import Utils.Pair;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,19 +20,10 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author stepansydoruk
  */
 public class ExtProcess {
@@ -36,6 +31,32 @@ public class ExtProcess {
     final static Logger logger = LoggerFactory.getLogger(ExtProcess.class);
     private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
     private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
+    private final ProcessBuilder pb;
+    private final String cmd;
+    private final boolean saveStdErr = false;
+    private final boolean saveStdOut = false;
+    Process proc = null;
+    ThreadedReader stdIn;
+    ThreadedReader stdErr;
+    private long procPID;
+    private int exitCode;
+    private Future<?> stdInFuture;
+    private Future<?> stdErrFuture;
+    private ExtProcess otherProc;
+    private Future<?> pipeFuture;
+    private IProcessOutputRead stderrReadProc;
+    private IProcessOutputRead stdinReadProc;
+    public ExtProcess(List<String> tarParams) throws IOException {
+        cmd = tarParams.get(0);
+        pb = getProcessBuilder(tarParams);
+        logger.trace("Working directory :" + pb.directory());
+
+    }
+    public ExtProcess(ArrayList<String> tarParams, ExtProcess procSSH) throws IOException {
+        this(tarParams);
+        otherProc = procSSH;
+
+    }
 
     private static ProcessBuilder getProcessBuilder(List<String> sshParameters) throws IOException {
         if (logger.isDebugEnabled()) {
@@ -75,36 +96,6 @@ public class ExtProcess {
 
         return (proc.getExitCode() != 255 && (saveStdOut || saveStdErr))
                 ? new Pair(proc.getSTDOut(), proc.getErrBuf()) : null;
-
-    }
-
-    private final ProcessBuilder pb;
-    private final String cmd;
-    private long procPID;
-
-    Process proc = null;
-    private final boolean saveStdErr = false;
-    private final boolean saveStdOut = false;
-    private int exitCode;
-    private Future<?> stdInFuture;
-    private Future<?> stdErrFuture;
-    private ExtProcess otherProc;
-    private Future<?> pipeFuture;
-    ThreadedReader stdIn;
-    ThreadedReader stdErr;
-    private IProcessOutputRead stderrReadProc;
-    private IProcessOutputRead stdinReadProc;
-
-    public ExtProcess(List<String> tarParams) throws IOException {
-        cmd = tarParams.get(0);
-        pb = getProcessBuilder(tarParams);
-        logger.trace("Working directory :" + pb.directory());
-
-    }
-
-    public ExtProcess(ArrayList<String> tarParams, ExtProcess procSSH) throws IOException {
-        this(tarParams);
-        otherProc = procSSH;
 
     }
 
@@ -333,12 +324,8 @@ public class ExtProcess {
         terminateChildren();
     }
 
-    public interface IProcessOutputRead {
-
-        void lineRead(String s);
-    }
-
     private String getPID() {
         return "pid:" + procPID + " ";
     }
+
 }

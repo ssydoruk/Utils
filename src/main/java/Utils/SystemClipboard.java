@@ -46,9 +46,8 @@ public class SystemClipboard {
 
     public static Clipboard getSystemClipboard() {
         Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
-        Clipboard systemClipboard = defaultToolkit.getSystemClipboard();
 
-        return systemClipboard;
+        return defaultToolkit.getSystemClipboard();
     }
 
     static void append(String text) {
