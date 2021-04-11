@@ -6,12 +6,16 @@
 package Utils.UnixProcess;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.sshd.client.ClientFactoryManager;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.PropertyResolverUtils;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -34,6 +38,7 @@ public class SSHClientWrapper {
     public long getDefaultTimeoutSeconds() {
         return defaultTimeoutSeconds;
     }
+
     private Future<?> stdInFuture;
     private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
@@ -42,7 +47,6 @@ public class SSHClientWrapper {
         private final String password;
         private final String host;
         private final int port;
-
 
 
         public String getUsername() {
@@ -103,6 +107,9 @@ public class SSHClientWrapper {
             if (!isEmpty() && containsKey(server)) {
                 ret = get(server);
             }
+            if (ret != null && ret.isClosed()) {
+                ret = null;
+            }
             if (ret == null) {
                 ret = startSession(wrapper, server);
                 put(server, ret);
@@ -111,14 +118,14 @@ public class SSHClientWrapper {
         }
 
         private ClientSession startSession(SSHClientWrapper wrapper, SSHServer server) throws IOException {
-            wrapper.getClient()
-                    .connect(server.getUsername(), server.getHost(), server.getPort());
+//            wrapper.getClient()
+//                    .connect(server.getUsername(), server.getHost(), server.getPort());
             ClientSession session = wrapper.getClient()
                     .connect(server.getUsername(), server.getHost(), server.getPort())
                     .verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS).getSession();
             session.addPasswordIdentity(server.getPassword());
-            session.auth().verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS);
 
+            session.auth().verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS);
             return session;
         }
     }
@@ -127,15 +134,19 @@ public class SSHClientWrapper {
 
     SSHSessions sshSessions = new SSHSessions();
 
+    private static final long HEARTBEAT=TimeUnit.SECONDS.toMillis(2L);
+
     public SSHClientWrapper(long defaultTimeoutSeconds) {
         client = SshClient.setUpDefaultClient();
+        PropertyResolverUtils.updateProperty(client, ClientFactoryManager.HEARTBEAT_INTERVAL, HEARTBEAT);
+        PropertyResolverUtils.updateProperty(client, ClientFactoryManager.SOCKET_KEEPALIVE, true);
         client.start();
         this.defaultTimeoutSeconds = defaultTimeoutSeconds;
     }
 
 
     public RemoteExecutionResult executeRemoteCommand(String username, String password,
-                                     String host, int port, String command) throws IOException {
+                                                      String host, int port, String command) throws IOException {
 
         ClientSession session = sshSessions.getAuthenticatedSession(this, new SSHServer(username, password, host, port));
 
@@ -166,11 +177,11 @@ public class SSHClientWrapper {
                             TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds));
                     ret.setRetCode(channel.getExitStatus());
                     String responseString = new String(stdOutStream.toString("utf-8"));
-                    if(StringUtils.isNotBlank(responseString)){
+                    if (StringUtils.isNotBlank(responseString)) {
                         ret.setStdout(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
                     }
-                     responseString = new String(stdErrStream.toString("utf-8"));
-                    if(StringUtils.isNotBlank(responseString)){
+                    responseString = new String(stdErrStream.toString("utf-8"));
+                    if (StringUtils.isNotBlank(responseString)) {
                         ret.setStderr(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
                     }
                 } finally {
@@ -182,7 +193,7 @@ public class SSHClientWrapper {
     }
 
     public RemoteExecutionResult executePipedRemoteCommand(String username, String password,
-                                                      String host, int port, String command,
+                                                           String host, int port, String command,
                                                            ThreadedOutputStreamReader outputReader) throws IOException {
 
         ClientSession session = sshSessions.getAuthenticatedSession(this, new SSHServer(username, password, host, port));
@@ -198,8 +209,8 @@ public class SSHClientWrapper {
             ret.setRetCode(0);
 
             try (
-                 ByteArrayOutputStream stdErrStream = new ByteArrayOutputStream();
-                 ClientChannel channel = session.createExecChannel(command)) {
+                    ByteArrayOutputStream stdErrStream = new ByteArrayOutputStream();
+                    ClientChannel channel = session.createExecChannel(command)) {
                 channel.setOut(outputReader.getOutputStream());
                 channel.setErr(stdErrStream);
 
@@ -212,11 +223,11 @@ public class SSHClientWrapper {
                     stdInFuture = executor.submit(outputReader);
                     // todo: better handling of timeout for file transfer completion
                     channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
-                            TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds)*100000);
+                            TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds) * 100000);
                     ret.setRetCode(channel.getExitStatus());
-                    String responseString ;
+                    String responseString;
                     responseString = new String(stdErrStream.toString("utf-8"));
-                    if(StringUtils.isNotBlank(responseString)){
+                    if (StringUtils.isNotBlank(responseString)) {
                         ret.setStderr(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
                     }
                 } finally {
