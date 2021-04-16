@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="true" scanPeriod="30 seconds">
+
+    <property name="base.folder" value="."/>
+
+
+    <!-- log INFO or higher messages to the console -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{ISO8601} %-5p %logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- log everything to a rolling file -->
+    <appender name="file1" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${base.folder}/logs/applog.log</file>
+        <encoder>
+            <pattern>%d{ISO8601} %-5p %logger{10} %X{RequestId}|%X{threadId} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${base.folder}/logs/applog.%d{yyyyMMddHH}_%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- use AsyncAppender for lower latencies -->
+    <appender name="async" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="file1"/>
+    </appender>
+
+    <!--
+             Turn on slow query logging by setting this logger to DEBUG;
+    set level to TRACE to also log query parameters
+    -->
+    <!-- <logger name="com.datastax.driver.core.QueryLogger.SLOW" level="info" /> -->
+    <!-- <logger name="com.datastax.driver.core.Connection" level="info" /> -->
+    <!-- <logger name="io.grpc.netty.shaded.io.grpc.netty.NettyClientHandler" level="info" /> -->
+    <!-- <logger name="ws.schild.jave" level="info" /> -->
+
+    <root level="debug">
+        <appender-ref ref="console"/>
+        <appender-ref ref="async"/>
+        <!-- <appender-ref ref="emailAppender" /> -->
+    </root>
+
+</configuration>

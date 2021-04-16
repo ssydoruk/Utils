@@ -5,21 +5,30 @@
  */
 package Utils.UnixProcess;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.sshd.agent.SshAgent;
+import org.apache.sshd.agent.local.LocalAgentFactory;
+import org.apache.sshd.agent.unix.UnixAgentFactory;
 import org.apache.sshd.client.ClientFactoryManager;
 import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.auth.UserAuthFactory;
+import org.apache.sshd.client.auth.keyboard.UserInteraction;
+import org.apache.sshd.client.auth.pubkey.UserAuthPublicKey;
+import org.apache.sshd.client.auth.pubkey.UserAuthPublicKeyFactory;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.PropertyResolverUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.io.*;
+import java.lang.invoke.MethodHandles;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -122,8 +131,27 @@ public class SSHClientWrapper {
 //                    .connect(server.getUsername(), server.getHost(), server.getPort());
             ClientSession session = wrapper.getClient()
                     .connect(server.getUsername(), server.getHost(), server.getPort())
-                    .verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS).getSession();
+                    .verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS).getClientSession();
             session.addPasswordIdentity(server.getPassword());
+
+            /*
+            String auth_sock = System.getenv().get("SSH_AUTH_SOCK");
+            if (StringUtils.isNotBlank(auth_sock))
+                session.getProperties().put(SshAgent.SSH_AUTHSOCKET_ENV_NAME, auth_sock);
+            UserAuthPublicKeyFactory
+                    factory
+                    = new
+                    UserAuthPublicKeyFactory();
+            UserAuthPublicKey userAuth = factory.createUserAuth(session);
+            session.setUserAuthFactories(Collections.singletonList(factory));
+            LocalAgentFactory f = new LocalAgentFactory();
+
+
+            session.addPublicKeyIdentity(userAuth);
+
+             */
+
+            //            session.setUserAuthFactories((List<UserAuthFactory>) new UnixAgentFactory());
 
             session.auth().verify(wrapper.getDefaultTimeoutSeconds(), TimeUnit.SECONDS);
             return session;
@@ -134,12 +162,30 @@ public class SSHClientWrapper {
 
     SSHSessions sshSessions = new SSHSessions();
 
-    private static final long HEARTBEAT=TimeUnit.SECONDS.toMillis(2L);
+    private static final long HEARTBEAT = TimeUnit.SECONDS.toMillis(2L);
 
     public SSHClientWrapper(long defaultTimeoutSeconds) {
         client = SshClient.setUpDefaultClient();
         PropertyResolverUtils.updateProperty(client, ClientFactoryManager.HEARTBEAT_INTERVAL, HEARTBEAT);
         PropertyResolverUtils.updateProperty(client, ClientFactoryManager.SOCKET_KEEPALIVE, true);
+
+        /*
+        below block is experiment to try to authenticate via local ssh agent
+
+        String auth_sock = System.getenv().get("SSH_AUTH_SOCK");
+        if (StringUtils.isNotBlank(auth_sock)) {
+            PropertyResolverUtils.updateProperty(client, SshAgent.SSH_AUTHSOCKET_ENV_NAME, auth_sock);
+            client.getProperties().put(SshAgent.SSH_AUTHSOCKET_ENV_NAME, auth_sock);
+        }
+        org.apache.sshd.client.auth.pubkey.UserAuthPublicKeyFactory
+                factory
+                = new
+                org.apache.sshd.client.auth.pubkey.UserAuthPublicKeyFactory();
+
+        client.setUserAuthFactories(Collections.singletonList(factory));
+        client.setAgentFactory(new LocalAgentFactory());
+*/
+
         client.start();
         this.defaultTimeoutSeconds = defaultTimeoutSeconds;
     }
@@ -208,46 +254,101 @@ public class SSHClientWrapper {
             RemoteExecutionResult ret = new RemoteExecutionResult();
             ret.setRetCode(0);
 
+            boolean externalOutStream = true;
+            ByteArrayOutputStream stdOutStream = null;
+            if (outputReader == null) {
+                stdOutStream = new ByteArrayOutputStream();
+            }
+
             try (
                     ByteArrayOutputStream stdErrStream = new ByteArrayOutputStream();
                     ClientChannel channel = session.createExecChannel(command)) {
-                channel.setOut(outputReader.getOutputStream());
+                channel.setOut((outputReader != null) ? outputReader.getOutputStream() : stdOutStream);
                 channel.setErr(stdErrStream);
 
                 try {
                     channel.open().verify(defaultTimeoutSeconds, TimeUnit.SECONDS);
+                    if (outputReader != null)
+                        stdInFuture = executor.submit(outputReader);
                     try (OutputStream pipedIn = channel.getInvertedIn()) {
                         pipedIn.write(command.getBytes());
-                        pipedIn.flush();
+                        try {
+                            pipedIn.flush();
+
+                        }
+                        catch (Exception e){
+                            logger.error("Exception while flushing: "+e.getMessage());
+                        }
+
                     }
-                    stdInFuture = executor.submit(outputReader);
                     // todo: better handling of timeout for file transfer completion
                     channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
                             TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds) * 100000);
                     ret.setRetCode(channel.getExitStatus());
                     String responseString;
+                    if (stdOutStream != null) {
+                        responseString = new String(stdOutStream.toString("utf-8"));
+                        if (StringUtils.isNotBlank(responseString)) {
+                            ret.setStdout(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
+                        }
+                    }
                     responseString = new String(stdErrStream.toString("utf-8"));
                     if (StringUtils.isNotBlank(responseString)) {
                         ret.setStderr(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
                     }
                 } finally {
                     channel.close(false);
+                    if (stdOutStream != null)
+                        stdOutStream.close();
                 }
             }
             return ret;
         }
     }
 
+    private static Logger logger;
+
     public static void main(String[] args) throws IOException {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        loggerContext.reset();
+        JoranConfigurator configurator = new JoranConfigurator();
+        String logback_file =
+                StringUtils.defaultIfBlank(StringUtils.defaultIfBlank(System.getenv().get("logback"), System.getProperty("logback")),
+                        "logback.xml");
+        try (InputStream configStream =
+                     FileUtils.openInputStream(new File(logback_file))) {
+            configurator.setContext(loggerContext);
+            configurator.doConfigure(configStream); // loads logback file
+        } catch (JoranException e) {
+            e.printStackTrace();
+        }
+        // assume SLF4J is bound to logback in the current environment
+        logger = LoggerFactory.getLogger("");
+
+
         SSHClientWrapper cl = new SSHClientWrapper(20000);
         ThreadedOutputStreamReader stdoutReader = new ThreadedUnTarGZ("/Users/stepan_sydoruk/tmp");
-        cl.executePipedRemoteCommand(
+//        cl.executePipedRemoteCommand(
+//                "ssydoruk",
+//                "pq1617uw",
+//                "192.168.64.10",
+//                22,
+//                "tar -C /applog/gcti/app_test -cz app_test.20210403_002535_895.log app_test_sip-001.20210402_233559_293.log",
+//                stdoutReader);
+//        cl.executePipedRemoteCommand(
+//                "ssydoruk",
+//                "pq1617uw",
+//                "192.168.1.69",
+//                22,
+//                "tar -C /applog/gcti/app_test -cz app_test.20210403_002535_895.log app_test_sip-001.20210402_233559_293.log",
+//                stdoutReader);
+        RemoteExecutionResult remoteExecutionResult = cl.executePipedRemoteCommand(
                 "ssydoruk",
                 "pq1617uw",
-                "192.168.64.10",
+                "192.168.1.69",
                 22,
-                "tar -C /applog/gcti/app_test -cz app_test.20210403_002535_895.log app_test_sip-001.20210402_233559_293.log",
-                stdoutReader);
-        System.out.println("All done");
+                "hostname",
+                null);
+        System.out.println("All done. "+remoteExecutionResult.toString());
     }
 }

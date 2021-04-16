@@ -1,5 +1,8 @@
 package Utils.UnixProcess;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 
 public class RemoteExecutionResult {
@@ -16,6 +19,13 @@ public class RemoteExecutionResult {
 
     public void setRetCode(int retCode) {
         this.retCode = retCode;
+    }
+
+    @Override
+    public String toString() {
+        return "ret: "+retCode+
+                " stdout:["+((stdout==null || stdout.isEmpty())?"<Empty>": StringUtils.join(stdout, "\n"))+"]"+
+                " stdout:["+((stderr==null || stderr.isEmpty())?"<Empty>": StringUtils.join(stderr, "\n"))+"]";
     }
 
     private  int retCode;
