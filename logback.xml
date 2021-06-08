@@ -5,7 +5,7 @@
 
 
     <!-- log INFO or higher messages to the console -->
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="console1" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{ISO8601} %-5p %logger %msg%n</pattern>
         </encoder>
@@ -40,8 +40,8 @@
     <!-- <logger name="io.grpc.netty.shaded.io.grpc.netty.NettyClientHandler" level="info" /> -->
     <!-- <logger name="ws.schild.jave" level="info" /> -->
 
-    <root level="debug">
-        <appender-ref ref="console"/>
+    <root level="trace">
+        <appender-ref ref="console1"/>
         <appender-ref ref="async"/>
         <!-- <appender-ref ref="emailAppender" /> -->
     </root>
