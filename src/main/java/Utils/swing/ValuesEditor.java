@@ -30,7 +30,7 @@ public class ValuesEditor extends StandardDialog {
     private int closeCause = JOptionPane.CANCEL_OPTION;
     private final JTable tab;
     private final String selectedFormat;
-    private final TableColumnAdjuster tca;
+
     private JButton upButton;
     private JButton downButton;
     private boolean dataChanged;
@@ -52,8 +52,6 @@ public class ValuesEditor extends StandardDialog {
         super(parent, title);
         this.tab = new JTable();
         this.selectedFormat = selectedFormat;
-        tca = new TableColumnAdjuster(tab);
-        tca.setColumnHeaderIncluded(true);
         dataChanged = false;
         this.fieldProfiles = fieldProfiles;
     }
@@ -95,7 +93,6 @@ public class ValuesEditor extends StandardDialog {
     public boolean doShow() {
         setModal(true);
 
-        tca.adjustColumns();
         pack();
         if (logger.isTraceEnabled()) {
             logger.trace("Show info PanelDialog; title=" + getTitle() + "; tab cols:" + tab.getColumnCount() + " rows: " + tab.getRowCount());
