@@ -3,118 +3,63 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Utils;
+package Utils.swing;
 
-import com.jidesoft.dialog.ButtonPanel;
-import com.jidesoft.dialog.StandardDialog;
+import com.jidesoft.dialog.*;
 import static com.jidesoft.dialog.StandardDialog.RESULT_AFFIRMED;
 import static com.jidesoft.dialog.StandardDialog.RESULT_CANCELLED;
-import java.awt.BorderLayout;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.util.logging.*;
 import static javax.swing.JOptionPane.QUESTION_MESSAGE;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.table.*;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.*;
 
 /**
  *
  * @author stepan_sydoruk
  */
-public class GridEditor extends StandardDialog {
+public class ValuesEditor extends StandardDialog {
 
-    final static Logger logger = LoggerFactory.getLogger(GridEditor.class);
-
-    public static void main(String[] args) {
-        GridEditor confServEditor = new GridEditor(null, "KVPs to add",
-                "Select %d profiles");
-
-        ArrayList<Object[]> values = new ArrayList<>();
-//        for (StoredSettings.ConfServer configServer : ds.getConfigServers()) {
-//            Object[] v = new Object[4];
-//            v[0] = configServer.getProfile();
-//            v[1] = configServer.getHost();
-//            v[2] = configServer.getPort();
-//            v[3] = configServer.getApp();
-//            values.add(v);
-//        }
-//        for (DownloadSettings.LFMTHostInstance hi : ds.getLfmtHostInstances()) {
-//            values.add(new Object[]{hi.getHost(), hi.getInstance(), hi.getBaseDir()});
-//        }
-
-        values.add(new String[]{"1", "2", "3"});
-        confServEditor.setData(new Object[]{"Section", "Key", "Value", "Action"},
-                values, 3
-        );
-        confServEditor.doShow();
-    }
-
+    final static Logger logger = LoggerFactory.getLogger(ValuesEditor.class);
     private int closeCause = JOptionPane.CANCEL_OPTION;
     private final JTable tab;
-    private String selectedFormat;
+    private final String selectedFormat;
     private final TableColumnAdjuster tca;
+    private JButton upButton;
+    private JButton downButton;
     private boolean dataChanged;
-    private final Window theParent;
-    private int mandatoryColumns = 0;
     private IAddChoices addChoices = null;
     ButtonPanel buttonPanel;
     JButton cancelButton;
     JButton addButton;
     JButton editButton;
     JButton deleteButton;
-    JButton csvImportButton;
     EditValuesDialog editDialog = null;
-    private String lastDirectory = System.getProperty("user.home");
-    private JFileChooser fc = null;
     private DefaultTableModel infoTableModel;
+    private FieldProfile[] fieldProfiles;
 
-    public GridEditor(Window parent, String title, String _selectedFormat) {
-        this(parent);
-        this.selectedFormat = _selectedFormat;
-        setTitle(title);
-
+    public FieldProfile[] getFieldProfiles() {
+        return fieldProfiles;
     }
 
-    public GridEditor(Window parent) {
-        super(parent);
-
+    public ValuesEditor(Window parent, String title, String selectedFormat, FieldProfile... fieldProfiles) {
+        super(parent, title);
         this.tab = new JTable();
+        this.selectedFormat = selectedFormat;
         tca = new TableColumnAdjuster(tab);
         tca.setColumnHeaderIncluded(true);
-        tab.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        theParent = parent;
-
         dataChanged = false;
+        this.fieldProfiles = fieldProfiles;
+    }
 
+    public ValuesEditor(Window parent, String title, String selectedFormat) {
+        this(parent, title, selectedFormat, null);
     }
 
     public int getCloseCause() {
@@ -131,6 +76,8 @@ public class GridEditor extends StandardDialog {
         editButton.setEnabled(singleSelection);
         deleteButton.setEnabled(singleSelection);
         boolean moreThanOneSelected = selectedRows != null && selectedRows.length > 0;
+        upButton.setEnabled(moreThanOneSelected && selectedRows[0] > 0);
+        downButton.setEnabled(moreThanOneSelected && selectedRows[selectedRows.length - 1] < tab.getRowCount() - 1);
     }
 
     public IAddChoices getAddChoices() {
@@ -141,91 +88,17 @@ public class GridEditor extends StandardDialog {
         this.addChoices = addChoices;
     }
 
-    private void importFile(String pathToCsv) {
-        BufferedReader csvReader = null;
-        String delim = null;
-        try {
-            logger.info(pathToCsv);
-            csvReader = new BufferedReader(new FileReader(pathToCsv));
-            String row;
-
-            boolean continueLoad = false;
-            if ((row = csvReader.readLine()) != null) {
-                delim = guessDelimiter(row);
-                if (delim == null) {
-                    JOptionPane.showMessageDialog(this, "Not able to determine type of csv file\n"
-                            + pathToCsv + "\n"
-                            + "File needs to have " + tab.getColumnCount()
-                            + "columns separated by either of 'Tab', '|', ','", "Cannot import", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    if (JOptionPane.showConfirmDialog(this, "About to import file\n"
-                            + pathToCsv + "\n"
-                            + "separator determined as " + (Character.isWhitespace(delim.charAt(0)) ? String.format("0x%02x", (int) delim.charAt(0)) : delim)
-                            + "\n"
-                            + "will read first " + tab.getColumnCount() + " fields"
-                            + "\n\nDo you want to continue with import?", "Please confirm",
-                            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
-                        tab.removeAll();
-                        infoTableModel.setRowCount(0);
-                        parseLine(row, delim);
-                        continueLoad = true;
-                    }
-                }
-            }
-            if (continueLoad) {
-                while ((row = csvReader.readLine()) != null) {
-                    parseLine(row, delim);
-                    // do something with the data
-                }
-                tca.adjustColumns();
-            }
-        } catch (IOException ex) {
-            logger.error(null, ex);
-        } finally {
-            if (csvReader != null) {
-                try {
-                    csvReader.close();
-                } catch (IOException ex) {
-                    logger.error(null, ex);
-                }
-            }
-
-        }
-
-    }
-
-    private String guessDelimiter(String row) {
-        if (StringUtils.isNotBlank(row)) {
-            for (String delim : new String[]{"\t", "|", ","}) {
-                String[] split = StringUtils.split(row, delim, tab.getColumnCount());
-                if (ArrayUtils.isNotEmpty(split) && (mandatoryColumns > 0 && split.length >= mandatoryColumns) || split.length >= tab.getColumnCount()) {
-                    return delim;
-                }
-
-            }
-        }
-        return null;
-    }
-
-    private void parseLine(String row, String delim) {
-        if (StringUtils.isNotBlank(row)) {
-            String[] split = StringUtils.split(row, delim, tab.getColumnCount());
-            infoTableModel.addRow(split);
-        }
-
-    }
-
     /**
      *
      * @return true if data was changed
      */
     public boolean doShow() {
+        setModal(true);
 
         tca.adjustColumns();
         pack();
-        invalidate();
         if (logger.isTraceEnabled()) {
-            logger.info("Show info PanelDialog; title=" + getTitle() + "; tab cols:" + tab.getColumnCount() + " rows: " + tab.getRowCount());
+            logger.trace("Show info PanelDialog; title=" + getTitle() + "; tab cols:" + tab.getColumnCount() + " rows: " + tab.getRowCount());
             StringBuilder s = new StringBuilder(512);
             for (int i = 0; i < tab.getRowCount(); i++) {
                 s.setLength(0);
@@ -237,8 +110,8 @@ public class GridEditor extends StandardDialog {
 
         }
 
-        ScreenInfo.CenterWindow(this);
-//        this.setLocationRelativeTo(getParent());
+//            ScreenInfo.CenterWindow(this);
+        this.setLocationRelativeTo(getParent());
         dataChanged = false;
         setVisible(
                 true);
@@ -307,17 +180,29 @@ public class GridEditor extends StandardDialog {
         });
         deleteButton.setText("Delete");
 
-        csvImportButton = new JButton();
-        buttonPanel.addButton(csvImportButton);
-
-        csvImportButton.setAction(new AbstractAction() {
+        upButton = new JButton();
+        buttonPanel.addButton(upButton);
+        upButton.setAction(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                importCSVPressed(e);
+                upPressed(e);
+
             }
 
         });
-        csvImportButton.setText("CSV import");
+        upButton.setText("Up");
+
+        downButton = new JButton();
+        buttonPanel.addButton(downButton);
+        downButton.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                downPressed(e);
+
+            }
+
+        });
+        downButton.setText("Down");
 
         cancelButton = new JButton();
         buttonPanel.addButton(cancelButton);
@@ -357,46 +242,9 @@ public class GridEditor extends StandardDialog {
 
     private EditValuesDialog getEditDialog() {
         if (editDialog == null) {
-            editDialog = new EditValuesDialog(this, tab.getColumnModel());
+            editDialog = new EditValuesDialog(this);
         }
         return editDialog;
-    }
-
-    private void addValuePressed(ActionEvent e) {
-        ArrayList<String> vals;
-        if ((vals = getEditDialog().doShow(null)) != null) {
-            infoTableModel.addRow(vals.toArray(new String[vals.size()]));
-            dataChanged = true;
-        }
-
-    }
-
-    private void importCSVPressed(ActionEvent e) {
-
-        if (fc == null) {
-            fc = new JFileChooser();
-            fc.setControlButtonsAreShown(true);
-            fc.setFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    return f.getName().toLowerCase().endsWith(".csv");
-                }
-
-                @Override
-                public String getDescription() {
-                    return "*.csv";
-                }
-            });
-        }
-        fc.setCurrentDirectory(new File(lastDirectory));
-//        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-//In response to a button click:
-        int returnVal = fc.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            lastDirectory = fc.getSelectedFile().getAbsolutePath();
-//            jtfOutputDir.setText(fc.getSelectedFile().getAbsolutePath());
-            importFile(fc.getSelectedFile().getAbsolutePath());
-        }
     }
 
     private ArrayList<ArrayList<String>> getAllValues() {
@@ -405,7 +253,13 @@ public class GridEditor extends StandardDialog {
         for (int j = 0; j < tab.getColumnCount(); j++) {
             ArrayList<String> r = new ArrayList<>(tab.getRowCount());
             for (int i = 0; i < tab.getRowCount(); i++) {
-                r.add((String) tab.getValueAt(i, j));
+                Object valueAt = tab.getValueAt(i, j);
+                if (valueAt instanceof StringValue) {
+                    String sVal = ((StringValue) valueAt).getValue();
+                    if (!r.contains(sVal)) {
+                        r.add(sVal);
+                    }
+                }
 
             }
             ret.add(r);
@@ -446,20 +300,50 @@ public class GridEditor extends StandardDialog {
         moveDownwards();
     }
 
+    private EditableValue[] getEditedValues(ArrayList<Object> valsToEdit) {
+        ArrayList<Object> vals;
+        if ((vals = getEditDialog().doShow(valsToEdit)) != null) {
+            EditableValue[] newVals = new EditableValue[fieldProfiles.length];
+            for (int i = 0; i < fieldProfiles.length; i++) {
+                try {
+                    newVals[i] = fieldProfiles[i].getNewObjType().newInstance();
+                    newVals[i].setValue(vals.get(i));
+                } catch (InstantiationException ex) {
+                    java.util.logging.Logger.getLogger(ValuesEditor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalAccessException ex) {
+                    java.util.logging.Logger.getLogger(ValuesEditor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            return newVals;
+
+        }
+        return null;
+    }
+
+    private void addValuePressed(ActionEvent e) {
+        EditableValue[] vals;
+        if ((vals = getEditedValues(null)) != null) {
+            infoTableModel.addRow(vals);
+            dataChanged = true;
+        }
+
+    }
+
     private void editValuePressed(ActionEvent e) {
         int selectedRow = tab.getSelectedRow();
         if (selectedRow >= 0) {
-            ArrayList<String> vals = new ArrayList<>(tab.getColumnCount());
+            ArrayList<EditableValue> vals = new ArrayList<>(tab.getColumnCount());
             for (int i = 0; i < tab.getColumnCount(); i++) {
-                vals.add((String) tab.getValueAt(selectedRow, i));
+                vals.add((EditableValue) tab.getValueAt(selectedRow, i));
             }
-
-            if ((vals = getEditDialog().doShow(vals)) != null) {
-                for (int i = 0; i < vals.size(); i++) {
-                    infoTableModel.setValueAt(vals.get(i), selectedRow, i);
+            EditableValue[] newVals;
+            if ((newVals = getEditedValues(null)) != null) {
+                for (int i = 0; i < newVals.length; i++) {
+                    infoTableModel.setValueAt(newVals[i], selectedRow, i);
                 }
                 dataChanged = true;
             }
+
         }
     }
 
@@ -471,7 +355,7 @@ public class GridEditor extends StandardDialog {
                 if (s.length() > 0) {
                     s.append(" - ");
                 }
-                s.append((String) tab.getValueAt(selectedRow, i));
+                s.append( tab.getValueAt(selectedRow, i));
             }
             if (JOptionPane.showConfirmDialog(this, "Are you sure you want to delete\n" + s, "Please confirm", YES_NO_OPTION, QUESTION_MESSAGE)
                     == JOptionPane.YES_OPTION) {
@@ -488,30 +372,32 @@ public class GridEditor extends StandardDialog {
         return doShow();
     }
 
-    public void setData(Object[] columns, ArrayList<Object[]> values, int _mandatoryColumns) {
-        mandatoryColumns = _mandatoryColumns;
+    public void setData(ArrayList<EditableValue[]> values) {
         infoTableModel = new DefaultTableModel();
-        for (Object column : columns) {
-            infoTableModel.addColumn(column);
+        for (FieldProfile profile : fieldProfiles) {
+            infoTableModel.addColumn(profile.getName());
         }
-        for (Object[] value : values) {
+        for (EditableValue[] value : values) {
             infoTableModel.addRow(value);
         }
         tab.setModel(infoTableModel);
-//        infoTableModel.fireTableDataChanged();
-//        infoTableModel.fireTableStructureChanged();
     }
 
-    public void setData(Object[] columns, ArrayList<Object[]> values) {
-        setData(columns, values, columns.length);
+    public void setData(Object[] columns, ArrayList<EditableValue[]> values) {
+        fieldProfiles = new FieldProfile[columns.length];
+        for (int i = 0; i < columns.length; i++) {
+            fieldProfiles[i] = new FieldProfile((String) columns[i], EditType.COMBOBOX, StringValue.class);
+
+        }
+        setData(values);
     }
 
-    public ArrayList<Object[]> getData() {
-        ArrayList<Object[]> ret = new ArrayList<>(infoTableModel.getRowCount());
+    public ArrayList<EditableValue[]> getData() {
+        ArrayList<EditableValue[]> ret = new ArrayList<>(infoTableModel.getRowCount());
         for (int i = 0; i < infoTableModel.getRowCount(); i++) {
-            Object[] vals = new Object[infoTableModel.getColumnCount()];
+            EditableValue[] vals = new EditableValue[infoTableModel.getColumnCount()];
             for (int j = 0; j < infoTableModel.getColumnCount(); j++) {
-                vals[j] = infoTableModel.getValueAt(i, j);
+                vals[j] = (EditableValue) infoTableModel.getValueAt(i, j);
             }
             ret.add(vals);
 
@@ -535,39 +421,34 @@ public class GridEditor extends StandardDialog {
             super();
         }
 
-        private EditValuesDialog(Window parent, TableColumnModel columnModel) {
-            super(parent);
-            col = new ArrayList<>(columnModel.getColumnCount());
-            pan = new ArrayList<>(columnModel.getColumnCount());
-            for (int i = 0; i < columnModel.getColumnCount(); i++) {
-                col.add(columnModel.getColumn(i).getHeaderValue());
-                pan.add(new EnterPanel((String) columnModel.getColumn(i).getHeaderValue()));
+        private EditValuesDialog(ValuesEditor valuesEditor) {
+            super(valuesEditor);
+            col = new ArrayList<>(valuesEditor.getFieldProfiles().length);
+            pan = new ArrayList<>(valuesEditor.getFieldProfiles().length);
+            for (int i = 0; i < valuesEditor.getFieldProfiles().length; i++) {
+                col.add(valuesEditor.getFieldProfiles()[i].getName());
+                pan.add(new EnterPanel(valuesEditor.getFieldProfiles()[i]));
             }
 
         }
 
-        private ArrayList<String> doShow(ArrayList<String> vals) {
+        private ArrayList<Object> doShow(ArrayList<Object> vals) {
             if (vals != null) {
                 setTitle("Edit entry");
-                for (int i = 0; i < pan.size(); i++) {
-                    EnterPanel enterPanel = pan.get(i);
-                    addChoices(enterPanel, i);
-                    enterPanel.setText(vals.get(i));
-                }
             } else {
-                for (int i = 0; i < pan.size(); i++) {
-                    EnterPanel enterPanel = pan.get(i);
-                    addChoices(enterPanel, i);
-                    enterPanel.setText(null);
-                }
-
                 setTitle("New entry");
             }
+            for (int i = 0; i < pan.size(); i++) {
+                EnterPanel enterPanel = pan.get(i);
+                addChoices(enterPanel, i);
+                enterPanel.setValue((vals != null) ? vals.get(i) : null);
+            }
+
             return doShow();
         }
 
         private void addChoices(EnterPanel enterPanel, int col) {
-            enterPanel.clearChoices();
+//            enterPanel.clearChoices();
             HashSet<String> ch = new HashSet<>();
             IAddChoices addChoices1 = getAddChoices();
             if (addChoices1 != null) {
@@ -638,7 +519,7 @@ public class GridEditor extends StandardDialog {
             return buttonPanel;
         }
 
-        public ArrayList<String> doShow() {
+        public ArrayList<Object> doShow() {
 
 //            setModal(true);
             pack();
@@ -658,9 +539,9 @@ public class GridEditor extends StandardDialog {
             setVisible(true);
 
             if (getDialogResult() == StandardDialog.RESULT_AFFIRMED) {
-                ArrayList<String> ret = new ArrayList<>(pan.size());
+                ArrayList<Object> ret = new ArrayList<>(pan.size());
                 for (EnterPanel enterPanel : pan) {
-                    ret.add(enterPanel.getText());
+                    ret.add(enterPanel.getValue());
                 }
                 return ret;
 
@@ -672,45 +553,76 @@ public class GridEditor extends StandardDialog {
 
         class EnterPanel {
 
-            private final JComboBox<String> tbValue;
+            private final JComponent tbValue;
             private final JPanel enterPanel;
+            private final EditType editType;
+            private Object value = null;
 
-            EnterPanel(String title) {
+            EnterPanel(FieldProfile fieldProfile) {
                 enterPanel = new JPanel();
                 enterPanel.setLayout(new BoxLayout(enterPanel, BoxLayout.LINE_AXIS));
-                enterPanel.add(new JLabel(title));
-                tbValue = new JComboBox();
-                tbValue.setEditable(true);
+                this.editType = fieldProfile.getEditType();
+                enterPanel.add(new JLabel(fieldProfile.getName()));
+                switch (editType) {
+                    case COMBOBOX:
+                        tbValue = new JComboBox();
+                        ((JComboBox) tbValue).setEditable(true);
+                        break;
+
+                    case STRING:
+                        tbValue = new JTextField();
+                        break;
+
+                    case INT:
+                        tbValue = new JFormattedTextField();
+                        break;
+
+                    case PASSWORD:
+                        tbValue = new JPasswordField();
+                        break;
+
+                    default:
+                        tbValue = null;
+
+                }
                 enterPanel.add(tbValue);
+            }
+
+            public void setValue(Object val) {
+                this.value = val;
             }
 
             public JPanel getEnterPanel() {
                 return enterPanel;
             }
 
-            public String getText() {
-                return (tbValue != null) ? (tbValue.getSelectedItem() != null) ? tbValue.getSelectedItem().toString() : null : null;
-            }
+            public Object getValue() {
+                if (tbValue instanceof JComboBox) {
+                    return (tbValue != null)
+                            ? (((JComboBox) tbValue).getSelectedItem() != null)
+                            ? ((JComboBox) tbValue).getSelectedItem().toString() : null : null;
 
-            public void setText(String txt) {
-                tbValue.setSelectedItem(txt);
-            }
-
-            private void clearChoices() {
-                tbValue.removeAllItems();
-
-            }
-
-            private void addChoices(HashSet<String> addChoices) {
-                for (String addChoice : addChoices) {
-                    tbValue.addItem(addChoice);
+                } else if (tbValue instanceof JTextField) {
+                    return ((JTextField) tbValue).getText();
+                } else if (tbValue instanceof JPasswordField) {
+                    return ((JPasswordField) tbValue).getPassword().toString();
+                } else if (tbValue instanceof JFormattedTextField) {
+                    return ((JFormattedTextField) tbValue).getValue();
                 }
-
+                return null;
             }
+//
+//            private void clearChoices() {
+//                tbValue.removeAllItems();
+//
+//            }
 
             private void addChoices(ArrayList<String> addChoices) {
-                for (String addChoice : addChoices) {
-                    tbValue.addItem(addChoice);
+                if (tbValue instanceof JComboBox) {
+                    for (String addChoice : addChoices) {
+                        ((JComboBox) tbValue).addItem(addChoice);
+                    }
+
                 }
 
             }

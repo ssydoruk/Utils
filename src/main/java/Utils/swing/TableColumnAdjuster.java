@@ -1,4 +1,4 @@
-package Utils;
+package Utils.swing;
 
 import java.awt.*;
 import java.awt.event.*;

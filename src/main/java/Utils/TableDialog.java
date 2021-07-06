@@ -5,6 +5,7 @@
  */
 package Utils;
 
+import Utils.swing.TableColumnAdjuster;
 import java.awt.HeadlessException;
 import java.awt.Window;
 import java.util.ArrayList;
