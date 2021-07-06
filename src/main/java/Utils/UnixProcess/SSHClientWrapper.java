@@ -158,8 +158,8 @@ public class SSHClientWrapper {
 
     public SSHClientWrapper(long defaultTimeoutSeconds) {
         client = SshClient.setUpDefaultClient();
-        PropertyResolverUtils.updateProperty(client, ClientFactoryManager.HEARTBEAT_INTERVAL, HEARTBEAT);
-        PropertyResolverUtils.updateProperty(client, ClientFactoryManager.SOCKET_KEEPALIVE, true);
+//        PropertyResolverUtils.updateProperty(client, ClientFactoryManager.HEARTBEAT_INTERVAL, HEARTBEAT);
+//        PropertyResolverUtils.updateProperty(client, ClientFactoryManager.SOCKET_KEEPALIVE, true);
 
         /*
         below block is experiment to try to authenticate via local ssh agent

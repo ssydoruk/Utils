@@ -31,25 +31,24 @@
         </dependency>
         <dependency>
             <groupId>org.apache.sshd</groupId>
-            <artifactId>sshd-netty</artifactId>
+            <artifactId>sshd-mina</artifactId>
             <version>2.5.1</version>
         </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
-            <version>4.1.49.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-jni</artifactId>
-            <version>9.0.5</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.netty</groupId>-->
+<!--            <artifactId>netty-transport-native-epoll</artifactId>-->
+<!--            <version>4.1.49.Final</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.tomcat</groupId>-->
+<!--            <artifactId>tomcat-jni</artifactId>-->
+<!--            <version>9.0.5</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.10</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>com.github.lgooddatepicker</groupId>
@@ -98,4 +97,5 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+
 </project>
