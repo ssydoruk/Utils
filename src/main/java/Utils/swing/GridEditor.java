@@ -8,8 +8,7 @@ package Utils.swing;
 import Utils.ScreenInfo;
 import com.jidesoft.dialog.ButtonPanel;
 import com.jidesoft.dialog.StandardDialog;
-import static com.jidesoft.dialog.StandardDialog.RESULT_AFFIRMED;
-import static com.jidesoft.dialog.StandardDialog.RESULT_CANCELLED;
+
 import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -92,6 +91,7 @@ public class GridEditor extends StandardDialog {
     JButton addButton;
     JButton editButton;
     JButton deleteButton;
+    JButton clearButton;
     JButton csvImportButton;
     EditValuesDialog editDialog = null;
     private String lastDirectory = System.getProperty("user.home");
@@ -308,6 +308,18 @@ public class GridEditor extends StandardDialog {
         });
         deleteButton.setText("Delete");
 
+        clearButton = new JButton();
+        buttonPanel.addButton(clearButton);
+        clearButton.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearPressed(e);
+
+            }
+
+        });
+        clearButton.setText("Clear");
+
         csvImportButton = new JButton();
         buttonPanel.addButton(csvImportButton);
 
@@ -464,7 +476,16 @@ public class GridEditor extends StandardDialog {
         }
     }
 
-    private void deleteValuePressed(ActionEvent e) {
+    private void clearPressed(ActionEvent e) {
+        if (JOptionPane.showConfirmDialog(this, "Do you want to remote all rows?",
+                       "Please confirm",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+            tab.removeAll();
+            infoTableModel.setRowCount(0);
+        }
+
+    }
+        private void deleteValuePressed(ActionEvent e) {
         int selectedRow = tab.getSelectedRow();
         if (selectedRow >= 0) {
             StringBuilder s = new StringBuilder();
