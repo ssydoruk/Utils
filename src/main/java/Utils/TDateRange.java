@@ -82,7 +82,6 @@ public class TDateRange extends javax.swing.JPanel {
         super();
         initComponents();
         initDates(showSeconds);
-
     }
 
     @Override
@@ -131,20 +130,29 @@ public class TDateRange extends javax.swing.JPanel {
         String dateFormat = (showSeconds) ? "HH:mm:ss" : "HH:mm";
 //        setLayout(new FlowLayout());
         JPanel pDates = new JPanel();
-        pDates.setLayout(new BoxLayout(pDates, BoxLayout.LINE_AXIS));
-
+        pDates.setLayout(new BoxLayout(pDates, BoxLayout.PAGE_AXIS));
+        
+        JPanel pFrom = new JPanel();
+        pFrom.setLayout(new BoxLayout(pFrom, BoxLayout.LINE_AXIS));
         jlFrom = new JLabel("From");
-        pDates.add(jlFrom);
+        pFrom.add(jlFrom);
         dtFrom = newPicker(dateFormat);
-        pDates.add(dtFrom);
+        pFrom.add(dtFrom);
+
+        JPanel pTo = new JPanel();
+        pTo.setLayout(new BoxLayout(pTo, BoxLayout.LINE_AXIS));
+       
         jlTo = new JLabel("To");
-        pDates.add(jlTo);
+        pTo.add(jlTo);
         dtTo = newPicker(dateFormat);
-        pDates.add(dtTo);
+        pTo.add(dtTo);
+
+        pDates.add(pFrom);
+        pDates.add(pTo);
+
 
         dtFrom.getTimePicker().getSettings().setDisplayToggleTimeMenuButton(true);
         dtTo.getTimePicker().getSettings().setDisplayToggleTimeMenuButton(true);
-        pDates.validate();
         pDates.setMaximumSize(new Dimension(pDates.getMinimumSize().width, pDates.getMinimumSize().height));
         add(pDates);
     }
