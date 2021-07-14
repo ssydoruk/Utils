@@ -5,19 +5,12 @@
  */
 package Utils;
 
-import com.jidesoft.dialog.ButtonPanel;
-import com.jidesoft.dialog.StandardDialog;
+import static Utils.ScreenInfo.fixOversizedWindow;
+import com.jidesoft.dialog.*;
 import static com.jidesoft.dialog.StandardDialog.RESULT_CANCELLED;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.HeadlessException;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
 /**
  *
@@ -40,14 +33,15 @@ public class InfoPanel extends StandardDialog {
         super(parent, title);
         this.mainPanel = jScrollPane;
         this.buttonOptions = buttonOptions;
+        fixOversizedWindow(this);
     }
 
     public InfoPanel(Window parent, int buttonOptions) throws HeadlessException {
         super(parent);
         this.buttonOptions = buttonOptions;
-        this.mainPanel =new JPanel(new BorderLayout());
+        this.mainPanel = new JPanel(new BorderLayout());
     }
-    
+
     public void setMainPanel(Container mainPanel) {
         this.mainPanel = mainPanel;
     }
