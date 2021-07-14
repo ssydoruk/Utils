@@ -5,14 +5,8 @@
  */
 package Utils;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
-import java.awt.Window;
-import javax.swing.JFrame;
+import java.awt.*;
+import javax.swing.*;
 
 /**
  *
@@ -65,12 +59,18 @@ public class ScreenInfo {
                 (ScreenInfo.getScreenHeight(screenID) - aThis.getHeight()) / 2);
     }
 
-    public static void CenterWindowMaxWidth(JFrame aThis) {
+    public static void CenterWindowMaxWidth(Window aThis) {
         int screenID = ScreenInfo.getScreenID(aThis);
-//        aThis.setLocationRelativeTo(null);
         aThis.setLocation(0,
                 (ScreenInfo.getScreenHeight(screenID) - aThis.getHeight()));
         aThis.setSize(ScreenInfo.getScreenWidth(screenID), aThis.getHeight());
+    }
+
+    public static void fixOversizedWindow(Window aThis) {
+        Dimension screenDimension = getScreenDimension(ScreenInfo.getScreenID(aThis));
+        double newHeight = (screenDimension.getHeight() < aThis.getHeight()) ? screenDimension.getHeight() : aThis.getHeight();
+        double newWidth = (screenDimension.getWidth() < aThis.getWidth()) ? screenDimension.getWidth() : aThis.getWidth();
+        aThis.setMaximumSize(new Dimension((int) newHeight, (int) newWidth));
     }
 
     public static void CenterWindowTopMaxWidth(JFrame aThis) {
