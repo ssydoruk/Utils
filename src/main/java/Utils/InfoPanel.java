@@ -216,7 +216,6 @@ public class InfoPanel extends StandardDialog {
     public void showModal() {
         pack();
         invalidate();
-//        ScreenInfo.CenterWindow(allFiles);
         setModal(true);
         ScreenInfo.setVisible(getParent(), this, true);
     }

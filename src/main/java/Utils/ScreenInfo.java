@@ -67,10 +67,14 @@ public class ScreenInfo {
     }
 
     public static void fixOversizedWindow(Window aThis) {
-        Dimension screenDimension = getScreenDimension(ScreenInfo.getScreenID(aThis));
-        double newHeight = (screenDimension.getHeight() < aThis.getHeight()) ? screenDimension.getHeight() : aThis.getHeight();
-        double newWidth = (screenDimension.getWidth() < aThis.getWidth()) ? screenDimension.getWidth() : aThis.getWidth();
-        aThis.setMaximumSize(new Dimension((int) newHeight, (int) newWidth));
+        Rectangle windowScreenBounds = getWindowScreenBounds(aThis);
+        if (windowScreenBounds != null) {
+            aThis.setSize(windowScreenBounds.width / 3 * 2, windowScreenBounds.height / 3 * 2);
+        }
+//        Dimension screenDimension = getScreenDimension(ScreenInfo.getScreenID(aThis));
+//        double newHeight = (screenDimension.getHeight() < aThis.getHeight()) ? screenDimension.getHeight() : aThis.getHeight();
+//        double newWidth = (screenDimension.getWidth() < aThis.getWidth()) ? screenDimension.getWidth() : aThis.getWidth();
+//        aThis.setMaximumSize(new Dimension((int) newHeight, (int) newWidth));
     }
 
     public static void CenterWindowTopMaxWidth(JFrame aThis) {
