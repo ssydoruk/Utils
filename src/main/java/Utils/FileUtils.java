@@ -5,21 +5,13 @@
  */
 package Utils;
 
-import java.awt.Component;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.awt.*;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.filechooser.*;
+import org.slf4j.*;
 
 /**
  *
