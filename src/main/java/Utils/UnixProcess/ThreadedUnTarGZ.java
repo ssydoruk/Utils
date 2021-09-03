@@ -7,11 +7,14 @@ package Utils.UnixProcess;
 
 import java.io.*;
 import java.nio.file.*;
+
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.nio.file.attribute.*;
 import java.util.*;
 import java.util.zip.*;
+
 import org.apache.commons.compress.archivers.*;
 import org.apache.commons.compress.archivers.tar.*;
 import org.apache.commons.compress.compressors.gzip.*;
@@ -22,35 +25,35 @@ import org.slf4j.*;
  * @author stepansydoruk
  */
 public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
-    
+
     final static Logger logger = LoggerFactory.getLogger(ThreadedUnTarGZ.class);
-    
+
     private final String targetDir;
     PipedOutputStream outputStream;
     PipedInputStream inputStream;
     private final boolean zipDest;
-    
+
     public ThreadedUnTarGZ(String targetDir, boolean isZipDest) throws IOException {
         this.targetDir = targetDir;
-        
+
         this.zipDest = isZipDest;
         outputStream = new PipedOutputStream();
         inputStream = new PipedInputStream();
         inputStream.connect(outputStream);
     }
-    
+
     public ThreadedUnTarGZ(String targetDir) throws IOException {
         this(targetDir, false);
     }
-    
+
     private IProcessOutputRead progressProc = null;
-    
+
     @Override
     public void run() {
         try (BufferedInputStream bi = new BufferedInputStream(inputStream);
-                GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
-                TarArchiveInputStream ti = new TarArchiveInputStream(gzi)) {
-            
+             GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
+             TarArchiveInputStream ti = new TarArchiveInputStream(gzi)) {
+
             ArchiveEntry entry;
             while ((entry = ti.getNextEntry()) != null) {
                 // create a new path, remember check zip slip attack
@@ -101,38 +104,42 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
             }
         }
         logProgress("Thread job done");
-        
+
     }
-    
+
     private void logProgress(String s) {
         System.out.println(s);
         if (progressProc != null) {
             progressProc.lineRead(s);
         }
     }
-    
+
     @Override
     public OutputStream getOutputStream() {
         return outputStream;
     }
-    
+
     public IProcessOutputRead getProgressProc() {
         return progressProc;
     }
-    
+
     public void setProgressProc(IProcessOutputRead progressProc) {
         this.progressProc = progressProc;
     }
-    
+
     private void zipFile(Path destFile) {
         String fn = destFile.toString();
         ArrayList<String> unzippedFiles = unzipFiles(fn);
         for (String unzippedFile : unzippedFiles) {
+            boolean success = false;
             try {
                 doZipFile(unzippedFile);
+                success = true;
             } catch (IOException ex) {
                 logger.error("failed to zip [" + destFile + "]");
             }
+            if (success)
+                deleteIgnoreException(unzippedFile);
         }
     }
 
@@ -144,7 +151,7 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
      */
     private ArrayList<String> unzipFiles(String fn) {
         String ext = FilenameUtils.getExtension(fn).toLowerCase();
-        
+
         ArrayList<String> ret = new ArrayList();
         if (ext.equals("gz")) {
             String target = FilenameUtils.removeExtension(fn);
@@ -157,14 +164,20 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
                 }
                 return ret;
             } else {
+                boolean success = false;
                 try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(fn))) {
-                    Files.copy(gis, Paths.get(target), REPLACE_EXISTING, COPY_ATTRIBUTES);
+                    Files.copy(gis, Paths.get(target), REPLACE_EXISTING);
                     ret.addAll(unzipFiles(target));
+                    success = true;
                 } catch (FileNotFoundException ex) {
                     logProgress("Exception: " + ex.getMessage());
                 } catch (IOException ex) {
                     logProgress("Exception: " + ex.getMessage());
                 }
+                if (success)
+                    deleteIgnoreException(fn);
+
+                return ret;
             }
         } else if (ext.equals("tgz")) {
             ArrayList<String> tmpList = unzipTGZ(fn);
@@ -181,15 +194,24 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
         ret.add(fn);
         return ret;
     }
-    
+
+    private void deleteIgnoreException(String fn) {
+        try {
+            Files.deleteIfExists(Paths.get(fn));
+        } catch (IOException ex) {
+            logProgress("Exception deleting [" + fn + "]: " + ex.getMessage());
+        }
+    }
+
     private ArrayList<String> unzipTGZ(String target) {
         ArrayList<String> ret = new ArrayList<>();
         String targetPath = FilenameUtils.getFullPath(target);
+        boolean success=false;
         try (InputStream fi = Files.newInputStream(Paths.get(target));
-                BufferedInputStream bi = new BufferedInputStream(fi);
-                GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
-                TarArchiveInputStream ti = new TarArchiveInputStream(gzi)) {
-            
+             BufferedInputStream bi = new BufferedInputStream(fi);
+             GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
+             TarArchiveInputStream ti = new TarArchiveInputStream(gzi)) {
+
             ArchiveEntry entry;
             while ((entry = ti.getNextEntry()) != null) {
 
@@ -200,39 +222,51 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
                 // copy TarArchiveInputStream to newPath
                 Files.copy(ti, newPath);
                 ret.add(newPath.toString());
+                success=true;
             }
         } catch (IOException ex) {
             logProgress("Exception: " + ex.getMessage());
         }
+        if(success)
+            deleteIgnoreException(target);
         return ret;
     }
-    
+
     private static Path zipSlipProtect(ArchiveEntry entry, Path targetDir)
             throws IOException {
-        
+
         Path targetDirResolved = targetDir.resolve(entry.getName());
 
         // make sure normalized file still has targetDir as its prefix,
         // else throws exception
         Path normalizePath = targetDirResolved.normalize();
-        
+
         if (!normalizePath.startsWith(targetDir)) {
             throw new IOException("Bad entry: " + entry.getName());
         }
-        
+
         return normalizePath;
     }
-    
+
     private void doZipFile(String sourceFile) throws FileNotFoundException, IOException {
         String fileName = FilenameUtils.getName(sourceFile);
-        String dstArchive = FilenameUtils.concat(sourceFile, "zip");
+        String dstArchive = sourceFile + ".zip";
         ZipEntry zipEntry = new ZipEntry(fileName);
         try (
                 FileOutputStream fos = new FileOutputStream(dstArchive);
                 ZipOutputStream zipOut = new ZipOutputStream(fos);
                 FileInputStream fis = new FileInputStream(new File(sourceFile));) {
             zipOut.putNextEntry(zipEntry);
-            IOUtils.copy(fis, fos);
+            byte[] bytes = new byte[8192];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zipOut.write(bytes, 0, length);
+            }
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        ThreadedUnTarGZ t = new ThreadedUnTarGZ("C:\\GCTI\\work\\test\\ConfigProxy_FTW\\IL3PWGENURS1\\d$\\Logs\\ConfigProxy_FTW\\");
+        t.zipFile(Paths.get("C:\\GCTI\\work\\test\\ConfigProxy_FTW\\IL3PWGENURS1\\d$\\Logs\\ConfigProxy_FTW\\arc.tgz"));
     }
 }
