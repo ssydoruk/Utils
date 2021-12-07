@@ -33,6 +33,12 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
     PipedInputStream inputStream;
     private final boolean zipDest;
 
+    private IDoneFileAction doneFileAction=null;
+
+    public void setDoneFileAction(IDoneFileAction doneFileAction) {
+        this.doneFileAction = doneFileAction;
+    }
+
     public ThreadedUnTarGZ(String targetDir, boolean isZipDest) throws IOException {
         this.targetDir = targetDir;
 
@@ -85,6 +91,9 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
                     if (zipDest) {
                         zipFile(destFile);
                     }
+                    else {
+                        doneFileAction(destFile);
+                    }
                 } catch (IOException e) {
                     logProgress("Failed to copy stream into [" + destFile + "]" + e);
                 }
@@ -105,6 +114,11 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
         }
         logProgress("Thread job done");
 
+    }
+
+    private void doneFileAction(Path destFile) {
+        if(doneFileAction!=null)
+            doneFileAction.fileDone(destFile);
     }
 
     private void logProgress(String s) {
@@ -133,7 +147,8 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
         for (String unzippedFile : unzippedFiles) {
             boolean success = false;
             try {
-                doZipFile(unzippedFile);
+                String zipFile = doZipFile(unzippedFile);
+                doneFileAction(Paths.get(zipFile));
                 success = true;
             } catch (IOException ex) {
                 logger.error("failed to zip [" + destFile + "]");
@@ -248,7 +263,7 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
         return normalizePath;
     }
 
-    private void doZipFile(String sourceFile) throws FileNotFoundException, IOException {
+    private String doZipFile(String sourceFile) throws FileNotFoundException, IOException {
         String fileName = FilenameUtils.getName(sourceFile);
         String dstArchive = sourceFile + ".zip";
         ZipEntry zipEntry = new ZipEntry(fileName);
@@ -263,6 +278,7 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
                 zipOut.write(bytes, 0, length);
             }
         }
+        return dstArchive;
     }
 
     public static void main(String[] args) throws IOException {
