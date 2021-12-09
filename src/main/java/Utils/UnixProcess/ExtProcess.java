@@ -10,6 +10,7 @@ import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,9 @@ import java.util.regex.Pattern;
 public class ExtProcess {
 
     final static Logger logger = LoggerFactory.getLogger(ExtProcess.class);
-    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
+            new BasicThreadFactory.Builder().namingPattern("process-%d").build()
+    );
     private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
     private final ProcessBuilder pb;
     private final String cmd;
@@ -189,6 +192,10 @@ public class ExtProcess {
         return waitFor(-1, TimeUnit.MILLISECONDS);
     }
 
+    public ExecutionResult waitForExecutionResult() throws InterruptedException {
+        return new ExecutionResult(waitFor(), getSTDOut(),getErrBuf() );
+    }
+
     public int waitFor(int cnt, TimeUnit tu) throws InterruptedException {
         if (proc.isAlive()) {
             if (cnt > 0) {
@@ -328,4 +335,31 @@ public class ExtProcess {
         return "pid:" + procPID + " ";
     }
 
+
+    public static class ExecutionResult{
+        public int getExitCode() {
+            return exitCode;
+        }
+
+        public ArrayList<String> getStdOut() {
+            return stdOut;
+        }
+
+        public ArrayList<String> getStdErr() {
+            return stdErr;
+        }
+
+        private  final int exitCode;
+
+        public ExecutionResult(int exitCode, ArrayList<String> stdOut, ArrayList<String> stdErr) {
+            this.exitCode = exitCode;
+            this.stdOut = stdOut;
+            this.stdErr = stdErr;
+        }
+
+        private  final ArrayList<String> stdOut;
+
+
+        private  final ArrayList<String> stdErr;
+    }
 }

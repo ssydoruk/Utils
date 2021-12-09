@@ -6,21 +6,20 @@
 package Utils.UnixProcess;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.sshd.client.ClientFactoryManager;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.PropertyResolverUtils;
+import org.apache.sshd.common.SshException;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,7 +40,9 @@ public class SSHClientWrapper {
     }
 
     private Future<?> stdInFuture;
-    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
+            new BasicThreadFactory.Builder().namingPattern("sshclient-%d").build()
+    );
 
     private static class SSHServer {
         private final String username;
@@ -184,48 +185,57 @@ public class SSHClientWrapper {
 
 
     public RemoteExecutionResult executeRemoteCommand(String username, String password,
-                                                      String host, int port, String command) throws IOException {
+                                                      String host, int port, String command) throws IOException, SshException {
 
-        ClientSession session = sshSessions.getAuthenticatedSession(this, new SSHServer(username, password, host, port));
+        try {
+            ClientSession session = sshSessions.getAuthenticatedSession(this, new SSHServer(username, password, host, port));
 
         /*
         Below synchronization should ensure sequential query to the same server.
         Different servers should be queried in parallel since session will be different for each
         combination of parameters
          */
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (session) {
-            RemoteExecutionResult ret = new RemoteExecutionResult();
-            ret.setRetCode(0);
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (session) {
+                RemoteExecutionResult ret = new RemoteExecutionResult();
+                ret.setRetCode(0);
 
-            try (ByteArrayOutputStream stdOutStream = new ByteArrayOutputStream(1024);
-                 ByteArrayOutputStream stdErrStream = new ByteArrayOutputStream();
-                 ClientChannel channel = session.createExecChannel(command)) {
-                channel.setOut(stdOutStream);
-                channel.setErr(stdErrStream);
+                try (ByteArrayOutputStream stdOutStream = new ByteArrayOutputStream(1024);
+                     ByteArrayOutputStream stdErrStream = new ByteArrayOutputStream();
+                     ClientChannel channel = session.createExecChannel(command)) {
+                    channel.setOut(stdOutStream);
+                    channel.setErr(stdErrStream);
 
-                try {
-                    channel.open().verify(defaultTimeoutSeconds, TimeUnit.SECONDS);
-                    try (OutputStream pipedIn = channel.getInvertedIn()) {
-                        pipedIn.write(command.getBytes());
-                        pipedIn.flush();
-                    }
+                    try {
+                        channel.open().verify(defaultTimeoutSeconds, TimeUnit.SECONDS);
+                        try (OutputStream pipedIn = channel.getInvertedIn()) {
+                            pipedIn.write(command.getBytes());
+                            pipedIn.flush();
+                        }
 
-                    channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
-                            TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds));
-                    ret.setRetCode(channel.getExitStatus());
-                    String responseString = new String(stdOutStream.toString("utf-8"));
-                    if (StringUtils.isNotBlank(responseString)) {
-                        ret.setStdout(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
+                        channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
+                                TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds));
+                        ret.setRetCode(channel.getExitStatus());
+                        String responseString = new String(stdOutStream.toString("utf-8"));
+                        if (StringUtils.isNotBlank(responseString)) {
+                            ret.setStdout(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
+                        }
+                        responseString = new String(stdErrStream.toString("utf-8"));
+                        if (StringUtils.isNotBlank(responseString)) {
+                            ret.setStderr(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
+                        }
+                    } finally {
+                        channel.close(false);
                     }
-                    responseString = new String(stdErrStream.toString("utf-8"));
-                    if (StringUtils.isNotBlank(responseString)) {
-                        ret.setStderr(new ArrayList<String>(Arrays.asList(responseString.split("\n"))));
-                    }
-                } finally {
-                    channel.close(false);
                 }
+                return ret;
             }
+        } catch (Exception e) {
+            RemoteExecutionResult ret = new RemoteExecutionResult();
+            ret.setRetCode(255);
+            ArrayList<String> stdErr = new ArrayList<>();
+            stdErr.add(e.getMessage());
+            ret.setStderr(stdErr);
             return ret;
         }
     }
