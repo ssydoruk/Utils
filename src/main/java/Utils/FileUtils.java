@@ -5,16 +5,31 @@
  */
 package Utils;
 
+import Utils.UnixProcess.IDoneFileAction;
+import Utils.UnixProcess.IProgress;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.filechooser.*;
-import org.slf4j.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
- *
  * @author loaner
  */
 public class FileUtils {
@@ -83,15 +98,15 @@ public class FileUtils {
 
         return (chooser.showOpenDialog(parent)
                 == JFileChooser.APPROVE_OPTION)
-                        ? chooser.getSelectedFile() : null;
+                ? chooser.getSelectedFile() : null;
     }
 
     public static void saveToFile(File theFile, String text) throws IOException {
 
         try (Writer writer
-                = new BufferedWriter(
-                        new FileWriter(theFile)
-                )) {
+                     = new BufferedWriter(
+                new FileWriter(theFile)
+        )) {
             writer.write(text);
         }
 
@@ -152,4 +167,148 @@ public class FileUtils {
         }
         return txt.toString();
     }
+
+    public static void zipFile(Path destFile, IDoneFileAction doneFileAction, IProgress progressProc) {
+        String fn = destFile.toString();
+        ArrayList<String> unzippedFiles = unzipFiles(fn, progressProc);
+        for (String unzippedFile : unzippedFiles) {
+            boolean success = false;
+            try {
+                String zipFile = doZipFile(unzippedFile);
+                if (doneFileAction != null)
+                    doneFileAction.fileDone(Paths.get(zipFile));
+                success = true;
+            } catch (IOException ex) {
+                logger.error("failed to zip [" + destFile + "]");
+            }
+            if (success)
+                deleteIgnoreException(unzippedFile, progressProc);
+        }
+    }
+
+
+    public static ArrayList<String> unzipFiles(String fn, IProgress progressProc) {
+        String ext = FilenameUtils.getExtension(fn).toLowerCase();
+
+        ArrayList<String> ret = new ArrayList();
+        if (ext.equals("gz")) {
+            String target = FilenameUtils.removeExtension(fn);
+            if (FilenameUtils.getExtension(target).toLowerCase().equals("tar")) {
+                ArrayList<String> tmpList = unzipTGZ(target, progressProc);
+                if (tmpList != null) {
+                    for (String string : tmpList) {
+                        ret.addAll(unzipFiles(string, progressProc));
+                    }
+                }
+                return ret;
+            } else {
+                boolean success = false;
+                try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(fn))) {
+                    Files.copy(gis, Paths.get(target), REPLACE_EXISTING);
+                    ret.addAll(unzipFiles(target, progressProc));
+                    success = true;
+                } catch (FileNotFoundException ex) {
+                    if(progressProc!=null)
+                        progressProc.inform("Exception: " + ex.getMessage());
+                } catch (IOException ex) {
+                    if(progressProc!=null)
+                        progressProc.inform("Exception: " + ex.getMessage());
+                }
+                if (success)
+                    deleteIgnoreException(fn, progressProc);
+
+                return ret;
+            }
+        } else if (ext.equals("tgz")) {
+            ArrayList<String> tmpList = unzipTGZ(fn, progressProc);
+            if (tmpList != null) {
+                for (String string : tmpList) {
+                    ret.addAll(unzipFiles(string, progressProc));
+                }
+            }
+            return ret;
+        } else if (ext.equals("zip")) {
+            ret.add(fn);
+            return ret;
+        }
+        ret.add(fn);
+        return ret;
+    }
+
+
+    public static ArrayList<String> unzipTGZ(String target, IProgress progressProc) {
+        ArrayList<String> ret = new ArrayList<>();
+        String targetPath = FilenameUtils.getFullPath(target);
+        boolean success = false;
+        try (InputStream fi = Files.newInputStream(Paths.get(target));
+             BufferedInputStream bi = new BufferedInputStream(fi);
+             GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
+             TarArchiveInputStream ti = new TarArchiveInputStream(gzi)) {
+
+            ArchiveEntry entry;
+            while ((entry = ti.getNextEntry()) != null) {
+
+                // create a new path, remember check zip slip attack
+                Path newPath = zipSlipProtect(entry, Paths.get(targetPath));
+
+                //checking
+                // copy TarArchiveInputStream to newPath
+                Files.copy(ti, newPath);
+                ret.add(newPath.toString());
+                success = true;
+            }
+        } catch (IOException ex) {
+            if(progressProc!=null)
+                progressProc.inform("Exception: " + ex.getMessage());
+        }
+        if (success)
+            deleteIgnoreException(target, progressProc);
+        return ret;
+    }
+
+    public static String doZipFile(String sourceFile) throws IOException {
+        String fileName = FilenameUtils.getName(sourceFile);
+        String dstArchive = sourceFile + ".zip";
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        try (
+                FileOutputStream fos = new FileOutputStream(dstArchive);
+                ZipOutputStream zipOut = new ZipOutputStream(fos);
+                FileInputStream fis = new FileInputStream(new File(sourceFile));) {
+            zipOut.putNextEntry(zipEntry);
+            byte[] bytes = new byte[8192];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zipOut.write(bytes, 0, length);
+            }
+        }
+        return dstArchive;
+    }
+
+    private static Path zipSlipProtect(ArchiveEntry entry, Path targetDir)
+            throws IOException {
+
+        Path targetDirResolved = targetDir.resolve(entry.getName());
+
+        // make sure normalized file still has targetDir as its prefix,
+        // else throws exception
+        Path normalizePath = targetDirResolved.normalize();
+
+        if (!normalizePath.startsWith(targetDir)) {
+            throw new IOException("Bad entry: " + entry.getName());
+        }
+
+        return normalizePath;
+    }
+
+    private static void deleteIgnoreException(String fn, IProgress progressProc) {
+        try {
+            Files.deleteIfExists(Paths.get(fn));
+        } catch (IOException ex) {
+            if(progressProc!=null)
+                progressProc.inform("Exception deleting [" + fn + "]: "  + ex.getMessage());
+        }
+    }
+
+
+
 }
