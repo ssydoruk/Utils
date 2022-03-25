@@ -5,6 +5,7 @@
  */
 package Utils.UnixProcess;
 
+import Utils.FileUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -88,7 +89,10 @@ public class ThreadedUnTarGZ implements ThreadedOutputStreamReader {
                     }
                     logProgress("Done file " + destFile);
                     if (zipDest) {
-                        zipFile(destFile, doneFileAction, s -> logProgress(s));
+                        if (FileUtils.isZIPArchive(destFile.toFile()))
+                            doneFileAction(destFile);
+                        else
+                            zipFile(destFile, doneFileAction, s -> logProgress(s));
                     } else {
                         doneFileAction(destFile);
                     }

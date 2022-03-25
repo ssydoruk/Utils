@@ -309,6 +309,15 @@ public class FileUtils {
         }
     }
 
+    public static boolean isZIPArchive(File f) {
+        int fileSignature = 0;
+        try (RandomAccessFile raf = new RandomAccessFile(f, "r")) {
+            fileSignature = raf.readInt();
+        } catch (IOException e) {
+            // handle if you like
+        }
+        return fileSignature == 0x504B0304 || fileSignature == 0x504B0506 || fileSignature == 0x504B0708;
+    }
 
 
 }
