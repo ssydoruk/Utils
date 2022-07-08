@@ -178,7 +178,6 @@ public class SSHClientWrapper {
         client.setUserAuthFactories(Collections.singletonList(factory));
         client.setAgentFactory(new LocalAgentFactory());
 */
-
         client.start();
         this.defaultTimeoutSeconds = defaultTimeoutSeconds;
     }
