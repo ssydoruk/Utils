@@ -67,19 +67,28 @@ public class FileUtils {
         return wd;
     }
 
-    private static JFileChooser chooser = null;
+    private static HashMap<FilterStr, FileNameExtensionFilter> chooserFilters = null;
 
-    private static HashMap<FilterStr, FileNameExtensionFilter> chooserFilters;
+    private static HashMap<String, JFileChooser> storedChoosers = null;
 
     public static File selectSingleFile(Component parent, File currDir, String title, String descr, String... ext) {
+        if (storedChoosers == null) {
+            storedChoosers = new HashMap<>();
+        }
+
+        String filterFiles = (descr != null && !descr.isEmpty()) ? descr : ((ext.length > 0 && ext[0] != null && !ext[0].isEmpty()) ? getAll(ext) : "");
+        String chooserHash = String.valueOf(parent.hashCode()) + filterFiles;
+        JFileChooser chooser = storedChoosers.get(chooserHash);
         if (chooser == null) {
             chooser = new JFileChooser();
+            storedChoosers.put(chooserHash, chooser);
         }
 
         FileNameExtensionFilter filter;
         if (chooserFilters == null) {
             chooserFilters = new HashMap<>();
         }
+
         FilterStr filterRequest = new FilterStr(descr, ext);
         filter = chooserFilters.get(filterRequest);
         if (filter == null) {
@@ -98,18 +107,28 @@ public class FileUtils {
 
         return (chooser.showOpenDialog(parent)
                 == JFileChooser.APPROVE_OPTION)
-                ? chooser.getSelectedFile() : null;
+                        ? chooser.getSelectedFile() : null;
     }
 
     public static void saveToFile(File theFile, String text) throws IOException {
 
         try (Writer writer
-                     = new BufferedWriter(
-                new FileWriter(theFile)
-        )) {
+                = new BufferedWriter(
+                        new FileWriter(theFile)
+                )) {
             writer.write(text);
         }
 
+    }
+
+    private static String getAll(String[] ext) {
+        StringBuilder ret = new StringBuilder();
+        for (String string : ext) {
+            if (string != null) {
+                ret.append(string);
+            }
+        }
+        return ret.toString();
     }
 
     static private class FilterStr extends Pair<String, String[]> {
@@ -175,17 +194,18 @@ public class FileUtils {
             boolean success = false;
             try {
                 String zipFile = doZipFile(unzippedFile);
-                if (doneFileAction != null)
+                if (doneFileAction != null) {
                     doneFileAction.fileDone(Paths.get(zipFile));
+                }
                 success = true;
             } catch (IOException ex) {
                 logger.error("failed to zip [" + destFile + "]");
             }
-            if (success)
+            if (success) {
                 deleteIgnoreException(unzippedFile, progressProc);
+            }
         }
     }
-
 
     public static ArrayList<String> unzipFiles(String fn, IProgress progressProc) {
         String ext = FilenameUtils.getExtension(fn).toLowerCase();
@@ -208,14 +228,17 @@ public class FileUtils {
                     ret.addAll(unzipFiles(target, progressProc));
                     success = true;
                 } catch (FileNotFoundException ex) {
-                    if(progressProc!=null)
+                    if (progressProc != null) {
                         progressProc.inform("Exception: " + ex.getMessage());
+                    }
                 } catch (IOException ex) {
-                    if(progressProc!=null)
+                    if (progressProc != null) {
                         progressProc.inform("Exception: " + ex.getMessage());
+                    }
                 }
-                if (success)
+                if (success) {
                     deleteIgnoreException(fn, progressProc);
+                }
 
                 return ret;
             }
@@ -235,15 +258,11 @@ public class FileUtils {
         return ret;
     }
 
-
     public static ArrayList<String> unzipTGZ(String target, IProgress progressProc) {
         ArrayList<String> ret = new ArrayList<>();
         String targetPath = FilenameUtils.getFullPath(target);
         boolean success = false;
-        try (InputStream fi = Files.newInputStream(Paths.get(target));
-             BufferedInputStream bi = new BufferedInputStream(fi);
-             GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi);
-             TarArchiveInputStream ti = new TarArchiveInputStream(gzi)) {
+        try (InputStream fi = Files.newInputStream(Paths.get(target)); BufferedInputStream bi = new BufferedInputStream(fi); GzipCompressorInputStream gzi = new GzipCompressorInputStream(bi); TarArchiveInputStream ti = new TarArchiveInputStream(gzi)) {
 
             ArchiveEntry entry;
             while ((entry = ti.getNextEntry()) != null) {
@@ -258,11 +277,13 @@ public class FileUtils {
                 success = true;
             }
         } catch (IOException ex) {
-            if(progressProc!=null)
+            if (progressProc != null) {
                 progressProc.inform("Exception: " + ex.getMessage());
+            }
         }
-        if (success)
+        if (success) {
             deleteIgnoreException(target, progressProc);
+        }
         return ret;
     }
 
@@ -271,9 +292,7 @@ public class FileUtils {
         String dstArchive = sourceFile + ".zip";
         ZipEntry zipEntry = new ZipEntry(fileName);
         try (
-                FileOutputStream fos = new FileOutputStream(dstArchive);
-                ZipOutputStream zipOut = new ZipOutputStream(fos);
-                FileInputStream fis = new FileInputStream(new File(sourceFile));) {
+                FileOutputStream fos = new FileOutputStream(dstArchive); ZipOutputStream zipOut = new ZipOutputStream(fos); FileInputStream fis = new FileInputStream(new File(sourceFile));) {
             zipOut.putNextEntry(zipEntry);
             byte[] bytes = new byte[8192];
             int length;
@@ -304,8 +323,9 @@ public class FileUtils {
         try {
             Files.deleteIfExists(Paths.get(fn));
         } catch (IOException ex) {
-            if(progressProc!=null)
-                progressProc.inform("Exception deleting [" + fn + "]: "  + ex.getMessage());
+            if (progressProc != null) {
+                progressProc.inform("Exception deleting [" + fn + "]: " + ex.getMessage());
+            }
         }
     }
 
@@ -318,6 +338,5 @@ public class FileUtils {
         }
         return fileSignature == 0x504B0304 || fileSignature == 0x504B0506 || fileSignature == 0x504B0708;
     }
-
 
 }
