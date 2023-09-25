@@ -79,7 +79,6 @@ public final class TableColumnAdjuster implements PropertyChangeListener, TableM
 	 *  Adjust the widths of all the columns in the table
      */
     public void adjustColumns() {
-        System.out.println("Adjust columns ");
         table.setVisible(false);
         TableColumnModel tcm = table.getColumnModel();
 
