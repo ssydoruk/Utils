@@ -217,7 +217,7 @@ public class InfoPanel extends StandardDialog {
         pack();
         invalidate();
         setModal(true);
-        ScreenInfo.setVisible(getParent(), this, true);
+        ScreenInfo.setVisible(SwingUtilities.windowForComponent(this), this, true);
     }
 
     public void showModal(JPanel topPan, String title) {

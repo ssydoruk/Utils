@@ -119,8 +119,7 @@ public class ScreenInfo {
         return null;
     }
 
-    public static void setVisible(Component parent, Window frm, boolean b) {
-
+    public static void setVisible(Window parent, Window frm, boolean b) {
 //        if (parent != null) {
 //            GraphicsDevice myDevice = parent.getGraphicsConfiguration().getDevice();
 //            inquirer.logger.info("myDevice before:" + myDevice);
@@ -153,6 +152,8 @@ public class ScreenInfo {
             frm.setLocationRelativeTo(parent);
         } else {
         }
+        parent.toBack();
+        frm.toFront();
 
         frm.setVisible(b);
     }
