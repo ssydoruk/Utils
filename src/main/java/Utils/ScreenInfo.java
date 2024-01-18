@@ -102,12 +102,12 @@ public class ScreenInfo {
     static private Rectangle getWindowScreenBounds(Window win) {
 //            GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 //            return gd.getDefaultConfiguration().getBounds();
-        
+
         for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
             Rectangle screenBounds = gd.getDefaultConfiguration().getBounds();
             Rectangle windowBounds = win.getBounds();
             Point location = win.getLocation();
-            Point loc = new Point((int)(location.getX()+windowBounds.getWidth()/2), (int)(location.getY()+windowBounds.getHeight()/2));
+            Point loc = new Point((int) (location.getX() + windowBounds.getWidth() / 2), (int) (location.getY() + windowBounds.getHeight() / 2));
             if (loc.getX() >= screenBounds.getMinX()
                     && loc.getX() < screenBounds.getMaxX()
                     && loc.getY() >= screenBounds.getMinY()
@@ -150,9 +150,8 @@ public class ScreenInfo {
 //        
         if (parent != null) {
             frm.setLocationRelativeTo(parent);
-        } else {
+            parent.toBack();
         }
-        parent.toBack();
         frm.toFront();
 
         frm.setVisible(b);
