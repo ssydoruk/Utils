@@ -9,7 +9,6 @@ import java.awt.*;
 import javax.swing.*;
 
 /**
- *
  * @author ssydoruk
  */
 public class ScreenInfo {
@@ -167,20 +166,51 @@ public class ScreenInfo {
 
     }
 
-    public static void refitMainToMsg(JFrame rptForm, JFrame fullMsgWindow) {
+    public static void refitMainToMsg(JFrame rptForm, JFrame fullMsgWindow, int position) {
         Rectangle windowScreenBounds = getWindowScreenBounds(rptForm);
-        if (windowScreenBounds != null) {
-            if (rptForm != null) {
-                rptForm.setLocation(windowScreenBounds.x,
-                        windowScreenBounds.y + windowScreenBounds.height / 3);
-                rptForm.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
+        if (windowScreenBounds != null && rptForm != null) {
+            Point formLocation = new Point();
+            Dimension formDimension = new Dimension();
+            Point msgLocation = new Point();
+            Dimension msgDimension = new Dimension();
+            switch (position) {
+                case SwingConstants.TOP:
+                    formLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y + windowScreenBounds.height / 3);
+                    formDimension.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
+
+                    msgLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y);
+                    msgDimension.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
+                    break;
+
+                case SwingConstants.BOTTOM:
+                    formLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y);
+                    formDimension.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
+
+                    msgLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y + windowScreenBounds.height * 2 / 3);
+                    msgDimension.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
+                    break;
+
+                case SwingConstants.RIGHT:
+                    formLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y);
+                    formDimension.setSize(windowScreenBounds.width * 2 / 3, windowScreenBounds.height);
+
+                    msgLocation.setLocation(windowScreenBounds.x + windowScreenBounds.width * 2 / 3, windowScreenBounds.y);
+                    msgDimension.setSize(windowScreenBounds.width / 3, windowScreenBounds.height);
+                    break;
+
+                case SwingConstants.LEFT:
+                    formLocation.setLocation(windowScreenBounds.x + windowScreenBounds.width / 3, windowScreenBounds.y);
+                    formDimension.setSize(windowScreenBounds.width * 2 / 3, windowScreenBounds.height);
+
+                    msgLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y);
+                    msgDimension.setSize(windowScreenBounds.width / 3, windowScreenBounds.height);
+                    break;
+
             }
-            if (fullMsgWindow != null) {
-                fullMsgWindow.setLocationRelativeTo(rptForm);
-                fullMsgWindow.setLocation(windowScreenBounds.x,
-                        windowScreenBounds.y);
-                fullMsgWindow.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
-            }
+            rptForm.setLocation(formLocation);
+            rptForm.setSize(formDimension);
+            fullMsgWindow.setLocation(msgLocation);
+            fullMsgWindow.setSize(msgDimension);
         }
 
     }
