@@ -8,6 +8,9 @@ package Utils;
 import java.awt.*;
 import javax.swing.*;
 
+import static java.awt.Frame.MAXIMIZED_BOTH;
+import static java.awt.Frame.NORMAL;
+
 /**
  * @author ssydoruk
  */
@@ -173,6 +176,8 @@ public class ScreenInfo {
             Dimension formDimension = new Dimension();
             Point msgLocation = new Point();
             Dimension msgDimension = new Dimension();
+            rptForm.setExtendedState(NORMAL);
+//            fullMsgWindow.setExtendedState(fullMsgWindow.getExtendedState()&JFrame.NORMAL);
             switch (position) {
                 case SwingConstants.TOP:
                     formLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y + windowScreenBounds.height / 3);
@@ -211,6 +216,7 @@ public class ScreenInfo {
             rptForm.setSize(formDimension);
             fullMsgWindow.setLocation(msgLocation);
             fullMsgWindow.setSize(msgDimension);
+
         }
 
     }
