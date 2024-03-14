@@ -35,11 +35,11 @@ public class UTCTimeRange extends Pair<Long, Long> {
     }
 
     public UTCTimeRange(int key, int value) {
-        super(new Long(key), new Long(value));
+        super(Long.valueOf(key), Long.valueOf(value));
     }
 
     public UTCTimeRange() {
-        super(new Long(0), new Long(0));
+        super(Long.valueOf(0), Long.valueOf(0));
     }
 
     public void setStart(Long t) {
