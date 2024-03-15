@@ -233,14 +233,14 @@ public class ScreenInfo {
             rptForm.setSize(formDimension);
             fullMsgWindow.setLocation(msgLocation);
             fullMsgWindow.setSize(msgDimension);
-            java.awt.EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    int extendedState = rptForm.getExtendedState();
-                    if( (extendedState & NORMAL) != NORMAL)
-                        rptForm.setExtendedState(fullMsgWindow.getExtendedState() & JFrame.NORMAL);
-                }
-            });
+//            java.awt.EventQueue.invokeLater(new Runnable() {
+//                @Override
+//                public void run() {
+//                    int extendedState = rptForm.getExtendedState();
+//                    if( (extendedState & NORMAL) != NORMAL)
+//                        rptForm.setExtendedState(fullMsgWindow.getExtendedState() & JFrame.NORMAL);
+//                }
+//            });
         }
 
     }
