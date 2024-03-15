@@ -37,8 +37,8 @@ public class ScreenInfo {
             Rectangle maximumWindowBounds = ge.getMaximumWindowBounds();
             d.setSize(maximumWindowBounds.width, maximumWindowBounds.height);
 
-//            DisplayMode mode = ge.getScreenDevices()[scrID - 1].getDisplayMode();
-//            d.setSize(mode.getWidth(), mode.getHeight());
+            // DisplayMode mode = ge.getScreenDevices()[scrID - 1].getDisplayMode();
+            // d.setSize(mode.getWidth(), mode.getHeight());
         }
         return d;
     }
@@ -55,8 +55,9 @@ public class ScreenInfo {
 
     public static void CenterWindow(Window aThis) {
         int screenID = ScreenInfo.getScreenID(aThis);
-//        System.out.println("Centering " + aThis.toString() + "; screen: " + screenID);
-//        aThis.setLocationRelativeTo(null);
+        // System.out.println("Centering " + aThis.toString() + "; screen: " +
+        // screenID);
+        // aThis.setLocationRelativeTo(null);
         aThis.setLocation((ScreenInfo.getScreenWidth(screenID) - aThis.getWidth()) / 2,
                 (ScreenInfo.getScreenHeight(screenID) - aThis.getHeight()) / 2);
     }
@@ -73,15 +74,18 @@ public class ScreenInfo {
         if (windowScreenBounds != null) {
             aThis.setSize(windowScreenBounds.width / 3 * 2, windowScreenBounds.height / 3 * 2);
         }
-//        Dimension screenDimension = getScreenDimension(ScreenInfo.getScreenID(aThis));
-//        double newHeight = (screenDimension.getHeight() < aThis.getHeight()) ? screenDimension.getHeight() : aThis.getHeight();
-//        double newWidth = (screenDimension.getWidth() < aThis.getWidth()) ? screenDimension.getWidth() : aThis.getWidth();
-//        aThis.setMaximumSize(new Dimension((int) newHeight, (int) newWidth));
+        // Dimension screenDimension =
+        // getScreenDimension(ScreenInfo.getScreenID(aThis));
+        // double newHeight = (screenDimension.getHeight() < aThis.getHeight()) ?
+        // screenDimension.getHeight() : aThis.getHeight();
+        // double newWidth = (screenDimension.getWidth() < aThis.getWidth()) ?
+        // screenDimension.getWidth() : aThis.getWidth();
+        // aThis.setMaximumSize(new Dimension((int) newHeight, (int) newWidth));
     }
 
     public static void CenterWindowTopMaxWidth(JFrame aThis) {
         int screenID = ScreenInfo.getScreenID(aThis);
-//        aThis.setLocationRelativeTo(null);
+        // aThis.setLocationRelativeTo(null);
         aThis.setLocation(0,
                 0);
         aThis.setSize(ScreenInfo.getScreenWidth(screenID), ScreenInfo.getScreenHeight(screenID) / 2);
@@ -92,29 +96,31 @@ public class ScreenInfo {
     }
 
     public static void CenterWindowMaxWidth(Window parent, Window frm) {
-//        Rectangle windowScreenBounds = getWindowScreenBounds(parent);
-//        if (windowScreenBounds != null) {
-//            frm.setLocation(0,
-//                    windowScreenBounds.height);
-////            frm.setSize(windowScreenBounds.height/2, windowScreenBounds.width);
-////            frm.setSize();
-//        }
+        // Rectangle windowScreenBounds = getWindowScreenBounds(parent);
+        // if (windowScreenBounds != null) {
+        // frm.setLocation(0,
+        // windowScreenBounds.height);
+        //// frm.setSize(windowScreenBounds.height/2, windowScreenBounds.width);
+        //// frm.setSize();
+        // }
     }
 
     static private Rectangle getWindowScreenBounds(Window win) {
-//            GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-//            return gd.getDefaultConfiguration().getBounds();
+        // GraphicsDevice gd =
+        // GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        // return gd.getDefaultConfiguration().getBounds();
 
         for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
             Rectangle screenBounds = gd.getDefaultConfiguration().getBounds();
             Rectangle windowBounds = win.getBounds();
             Point location = win.getLocation();
-            Point loc = new Point((int) (location.getX() + windowBounds.getWidth() / 2), (int) (location.getY() + windowBounds.getHeight() / 2));
+            Point loc = new Point((int) (location.getX() + windowBounds.getWidth() / 2),
+                    (int) (location.getY() + windowBounds.getHeight() / 2));
             if (loc.getX() >= screenBounds.getMinX()
                     && loc.getX() < screenBounds.getMaxX()
                     && loc.getY() >= screenBounds.getMinY()
                     && loc.getY() < screenBounds.getMaxY()) {
-//                    frm.setLocationRelativeTo(parent);
+                // frm.setLocationRelativeTo(parent);
                 return screenBounds;
             }
         }
@@ -122,34 +128,44 @@ public class ScreenInfo {
     }
 
     public static void setVisible(Window parent, Window frm, boolean b) {
-//        if (parent != null) {
-//            GraphicsDevice myDevice = parent.getGraphicsConfiguration().getDevice();
-//            inquirer.logger.info("myDevice before:" + myDevice);
-//            for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
-//                if (parent.getLocation().getX() >= gd.getDefaultConfiguration().getBounds().getMinX()
-//                        && parent.getLocation().getX() < gd.getDefaultConfiguration().getBounds().getMaxX()
-//                        && parent.getLocation().getY() >= gd.getDefaultConfiguration().getBounds().getMinY()
-//                        && parent.getLocation().getY() < gd.getDefaultConfiguration().getBounds().getMaxY()) {
-////                    frm.setLocationRelativeTo(parent);
-//                    myDevice = gd;
-//                    inquirer.logger.info("myDevice found:" + myDevice);
-//                }
-//            }
-//        } else {
-//            GraphicsDevice myDevice = frm.getGraphicsConfiguration().getDevice();
-//            inquirer.logger.info("myDevice before:" + myDevice);
-//            for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
-//                if (frm.getLocation().getX() >= gd.getDefaultConfiguration().getBounds().getMinX()
-//                        && frm.getLocation().getX() < gd.getDefaultConfiguration().getBounds().getMaxX()
-//                        && frm.getLocation().getY() >= gd.getDefaultConfiguration().getBounds().getMinY()
-//                        && frm.getLocation().getY() < gd.getDefaultConfiguration().getBounds().getMaxY()) {
-////                    frm.setLocationRelativeTo(parent);
-//                    myDevice = gd;
-//                    inquirer.logger.info("myDevice found:" + myDevice);
-//                }
-//            }
-//        }
-//        
+        // if (parent != null) {
+        // GraphicsDevice myDevice = parent.getGraphicsConfiguration().getDevice();
+        // inquirer.logger.info("myDevice before:" + myDevice);
+        // for (GraphicsDevice gd :
+        // GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+        // if (parent.getLocation().getX() >=
+        // gd.getDefaultConfiguration().getBounds().getMinX()
+        // && parent.getLocation().getX() <
+        // gd.getDefaultConfiguration().getBounds().getMaxX()
+        // && parent.getLocation().getY() >=
+        // gd.getDefaultConfiguration().getBounds().getMinY()
+        // && parent.getLocation().getY() <
+        // gd.getDefaultConfiguration().getBounds().getMaxY()) {
+        //// frm.setLocationRelativeTo(parent);
+        // myDevice = gd;
+        // inquirer.logger.info("myDevice found:" + myDevice);
+        // }
+        // }
+        // } else {
+        // GraphicsDevice myDevice = frm.getGraphicsConfiguration().getDevice();
+        // inquirer.logger.info("myDevice before:" + myDevice);
+        // for (GraphicsDevice gd :
+        // GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+        // if (frm.getLocation().getX() >=
+        // gd.getDefaultConfiguration().getBounds().getMinX()
+        // && frm.getLocation().getX() <
+        // gd.getDefaultConfiguration().getBounds().getMaxX()
+        // && frm.getLocation().getY() >=
+        // gd.getDefaultConfiguration().getBounds().getMinY()
+        // && frm.getLocation().getY() <
+        // gd.getDefaultConfiguration().getBounds().getMaxY()) {
+        //// frm.setLocationRelativeTo(parent);
+        // myDevice = gd;
+        // inquirer.logger.info("myDevice found:" + myDevice);
+        // }
+        // }
+        // }
+        //
         if (parent != null) {
             frm.setLocationRelativeTo(parent);
             parent.toBack();
@@ -176,11 +192,10 @@ public class ScreenInfo {
             Dimension formDimension = new Dimension();
             Point msgLocation = new Point();
             Dimension msgDimension = new Dimension();
-            rptForm.setExtendedState(NORMAL);
-//            fullMsgWindow.setExtendedState(fullMsgWindow.getExtendedState()&JFrame.NORMAL);
             switch (position) {
                 case SwingConstants.TOP:
-                    formLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y + windowScreenBounds.height / 3);
+                    formLocation.setLocation(windowScreenBounds.x,
+                            windowScreenBounds.y + windowScreenBounds.height / 3);
                     formDimension.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
 
                     msgLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y);
@@ -191,7 +206,8 @@ public class ScreenInfo {
                     formLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y);
                     formDimension.setSize(windowScreenBounds.width, windowScreenBounds.height * 2 / 3);
 
-                    msgLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y + windowScreenBounds.height * 2 / 3);
+                    msgLocation.setLocation(windowScreenBounds.x,
+                            windowScreenBounds.y + windowScreenBounds.height * 2 / 3);
                     msgDimension.setSize(windowScreenBounds.width, windowScreenBounds.height / 3);
                     break;
 
@@ -199,7 +215,8 @@ public class ScreenInfo {
                     formLocation.setLocation(windowScreenBounds.x, windowScreenBounds.y);
                     formDimension.setSize(windowScreenBounds.width * 2 / 3, windowScreenBounds.height);
 
-                    msgLocation.setLocation(windowScreenBounds.x + windowScreenBounds.width * 2 / 3, windowScreenBounds.y);
+                    msgLocation.setLocation(windowScreenBounds.x + windowScreenBounds.width * 2 / 3,
+                            windowScreenBounds.y);
                     msgDimension.setSize(windowScreenBounds.width / 3, windowScreenBounds.height);
                     break;
 
@@ -216,7 +233,14 @@ public class ScreenInfo {
             rptForm.setSize(formDimension);
             fullMsgWindow.setLocation(msgLocation);
             fullMsgWindow.setSize(msgDimension);
-
+            java.awt.EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    int extendedState = rptForm.getExtendedState();
+                    if( (extendedState & NORMAL) != NORMAL)
+                        rptForm.setExtendedState(fullMsgWindow.getExtendedState() & JFrame.NORMAL);
+                }
+            });
         }
 
     }
