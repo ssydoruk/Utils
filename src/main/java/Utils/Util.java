@@ -8,6 +8,8 @@ package Utils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
@@ -188,6 +190,12 @@ public class Util {
     public enum OS {
         WINDOWS, LINUX, MAC, SOLARIS
     }
+
+
+    public static <T> ArrayList<T> sortedArray(T[] ids) {
+        return Stream.of(ids).sorted().collect(Collectors.toCollection(ArrayList::new));
+    }
+
 
     public static String findFirst(List<String> get) {
         return (get != null && !get.isEmpty()) ? get.get(0) : null;
