@@ -31,8 +31,7 @@ public class ExtProcess {
 
     final static Logger logger = LoggerFactory.getLogger(ExtProcess.class);
     private static final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
-            new BasicThreadFactory.Builder().namingPattern("process-%d").build()
-    );
+            new BasicThreadFactory.Builder().namingPattern("process-%d").build());
     private static final Pattern sp = Pattern.compile("[^\\\\]\\s");
     private final ProcessBuilder pb;
     private final String cmd;
@@ -49,12 +48,32 @@ public class ExtProcess {
     private Future<?> pipeFuture;
     private IProcessOutputRead stderrReadProc;
     private IProcessOutputRead stdinReadProc;
+    private IOutputFilter stdOutFilter;
+    private IOutputFilter stdErrFilter;
+
+    public IOutputFilter getStdOutFilter() {
+        return stdOutFilter;
+    }
+
+    public void setStdOutFilter(IOutputFilter stdOutFilter) {
+        this.stdOutFilter = stdOutFilter;
+    }
+
+    public IOutputFilter getStdErrFilter() {
+        return stdErrFilter;
+    }
+
+    public void setStdErrFilter(IOutputFilter stdErrFilter) {
+        this.stdErrFilter = stdErrFilter;
+    }
+
     public ExtProcess(List<String> tarParams) throws IOException {
         cmd = tarParams.get(0);
         pb = getProcessBuilder(tarParams);
         logger.trace("Working directory :" + pb.directory());
 
     }
+
     public ExtProcess(ArrayList<String> tarParams, ExtProcess procSSH) throws IOException {
         this(tarParams);
         otherProc = procSSH;
@@ -87,18 +106,20 @@ public class ExtProcess {
 
     }
 
-    public static Pair<ArrayList<String>, ArrayList<String>> executeCommand(String key, boolean saveStdOut, boolean saveStdErr) throws IOException, InterruptedException {
+    public static Pair<ArrayList<String>, ArrayList<String>> executeCommand(String key, boolean saveStdOut,
+            boolean saveStdErr) throws IOException, InterruptedException {
         ArrayList<String> cmdParams = new ArrayList<>(Arrays.asList(StringUtils.split(key)));
 
         logger.debug("Executing [" + StringUtils.join(cmdParams, " "));
-//        logger.trace("executing: " + rsyncParams);
+        // logger.trace("executing: " + rsyncParams);
         ExtProcess proc = new ExtProcess(cmdParams);
         proc.startProcess(saveStdOut, saveStdErr);
         int waitFor = proc.waitFor();
         logger.debug("process terminated, result: " + waitFor);
 
         return (proc.getExitCode() != 255 && (saveStdOut || saveStdErr))
-                ? new Pair(proc.getSTDOut(), proc.getErrBuf()) : null;
+                ? new Pair(proc.getSTDOut(), proc.getErrBuf())
+                : null;
 
     }
 
@@ -155,12 +176,16 @@ public class ExtProcess {
             if (stdinReadProc != null) {
                 stdIn.setstdinReadProc(stdinReadProc);
             }
+            if (stdOutFilter != null)
+                stdIn.setFilterPrc(stdOutFilter);
             stdInFuture = executor.submit(stdIn);
         }
         stdErr = new ThreadedReader((proc.getErrorStream()), cmd, "err", saveStdErr);
         if (stderrReadProc != null) {
             stdErr.setstdinReadProc(stderrReadProc);
         }
+        if(stdErrFilter!=null)
+            stdErr.setFilterPrc(stdErrFilter);
         stdErrFuture = executor.submit(stdErr);
 
     }
@@ -193,7 +218,7 @@ public class ExtProcess {
     }
 
     public ExecutionResult waitForExecutionResult() throws InterruptedException {
-        return new ExecutionResult(waitFor(), getSTDOut(),getErrBuf() );
+        return new ExecutionResult(waitFor(), getSTDOut(), getErrBuf());
     }
 
     public int waitFor(int cnt, TimeUnit tu) throws InterruptedException {
@@ -278,7 +303,7 @@ public class ExtProcess {
         try {
             stream.close();
         } catch (IOException ex) {
-//            Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
+            // Logger.getLogger(ExtProcess.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -287,8 +312,9 @@ public class ExtProcess {
         long pid = -1;
 
         try {
-            //for windows
-            if (p.getClass().getName().equals("java.lang.Win32Process") || p.getClass().getName().equals("java.lang.ProcessImpl")) {
+            // for windows
+            if (p.getClass().getName().equals("java.lang.Win32Process")
+                    || p.getClass().getName().equals("java.lang.ProcessImpl")) {
                 Field f = p.getClass().getDeclaredField("handle");
                 f.setAccessible(true);
                 long handl = f.getLong(p);
@@ -297,7 +323,7 @@ public class ExtProcess {
                 hand.setPointer(Pointer.createConstant(handl));
                 pid = kernel.GetProcessId(hand);
                 f.setAccessible(false);
-            } //for unix based operating systems
+            } // for unix based operating systems
             else if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
                 Field f = p.getClass().getDeclaredField("pid");
                 f.setAccessible(true);
@@ -316,10 +342,10 @@ public class ExtProcess {
             logger.error("Cannot kill UCC by PID. PID not set.");
             return;
         }
-//        synchronized (spawnProcessMutex) {
-//            JavaSysMon monitor = new JavaSysMon();
-//            monitor.killProcessTree(uccPid, false);
-//        }
+        // synchronized (spawnProcessMutex) {
+        // JavaSysMon monitor = new JavaSysMon();
+        // monitor.killProcessTree(uccPid, false);
+        // }
     }
 
     public void cancel() {
@@ -335,8 +361,7 @@ public class ExtProcess {
         return "pid:" + procPID + " ";
     }
 
-
-    public static class ExecutionResult{
+    public static class ExecutionResult {
         public int getExitCode() {
             return exitCode;
         }
@@ -349,7 +374,7 @@ public class ExtProcess {
             return stdErr;
         }
 
-        private  final int exitCode;
+        private final int exitCode;
 
         public ExecutionResult(int exitCode, ArrayList<String> stdOut, ArrayList<String> stdErr) {
             this.exitCode = exitCode;
@@ -357,9 +382,8 @@ public class ExtProcess {
             this.stdErr = stdErr;
         }
 
-        private  final ArrayList<String> stdOut;
+        private final ArrayList<String> stdOut;
 
-
-        private  final ArrayList<String> stdErr;
+        private final ArrayList<String> stdErr;
     }
 }

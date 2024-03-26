@@ -27,12 +27,21 @@ public class ThreadedReader implements Runnable {
     private boolean saveOutput = false;
     private ArrayList<String> outBuf;
     private IProcessOutputRead stdinReadProc;
+    private IOutputFilter filterPrc = null;
+
+    public IOutputFilter getFilterPrc() {
+        return filterPrc;
+    }
+
+    public void setFilterPrc(IOutputFilter filterPrc) {
+        this.filterPrc = filterPrc;
+    }
 
     public ThreadedReader(InputStream in, String cmd, String stream) {
         this.stream = new BufferedReader(new InputStreamReader(in));
         this.cmd = cmd;
         this.streamName = stream;
-        logger.debug(thrID() +"started reader for cmd: " + cmd + " stream:" + streamName);
+        logger.debug(thrID() + "started reader for cmd: " + cmd + " stream:" + streamName);
     }
 
     ThreadedReader(InputStream in, String cmd, String stream, boolean saveStdOut) {
@@ -48,20 +57,21 @@ public class ThreadedReader implements Runnable {
     @Override
     public void run() {
         if (stream != null) {
-                    logger.debug(thrID() +"run cmd: " + cmd + " stream:" + streamName);
+            logger.debug(thrID() + "run cmd: " + cmd + " stream:" + streamName);
 
             String s;
             try {
                 synchronized (this) {
                     while ((s = stream.readLine()) != null) {
-                        logger.debug(thrID() + cmd + "_" + streamName + ": " + s);
+                        String outS = (filterPrc != null) ? filterPrc.filter(s) : s;
+                        logger.debug(thrID() + cmd + "_" + streamName + ": " + outS);
                         if (saveOutput) {
                             synchronized (outBuf) {
-                                outBuf.add(s);
+                                outBuf.add(outS);
                             }
                         }
                         if (stdinReadProc != null) {
-                            stdinReadProc.lineRead(s);
+                            stdinReadProc.lineRead(outS);
                         }
                     }
                 }
