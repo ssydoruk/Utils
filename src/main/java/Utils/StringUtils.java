@@ -42,9 +42,11 @@ public class StringUtils {
 
     static public int CharOccurences(StringBuilder s, char c) {
         int ret = 0;
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == c) {
-                ret++;
+        if (s != null) {
+            for (int i = 0; i < s.length(); i++) {
+                if (s.charAt(i) == c) {
+                    ret++;
+                }
             }
         }
         return ret;
@@ -53,14 +55,16 @@ public class StringUtils {
     static public int CountStrings(StringBuilder sipBuf, String search) {
         int ret = 0, idx = 0;
 
-        while (true) {
-            if ((idx = sipBuf.indexOf(search, idx)) >= 0) {
-                ret++;
-                idx += search.length();
-            } else {
-                break;
-            }
+        if (sipBuf != null) {
+            while (true) {
+                if ((idx = sipBuf.indexOf(search, idx)) >= 0) {
+                    ret++;
+                    idx += search.length();
+                } else {
+                    break;
+                }
 
+            }
         }
         return ret;
     }

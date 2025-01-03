@@ -43,17 +43,16 @@
             <artifactId>sshd-mina</artifactId>
             <version>2.12.1</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>io.netty</groupId>-->
-<!--            <artifactId>netty-transport-native-epoll</artifactId>-->
-<!--            <version>4.1.49.Final</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.tomcat</groupId>-->
-<!--            <artifactId>tomcat-jni</artifactId>-->
-<!--            <version>9.0.5</version>-->
-<!--        </dependency>-->
-
+        <!--        <dependency>-->
+        <!--            <groupId>io.netty</groupId>-->
+        <!--            <artifactId>netty-transport-native-epoll</artifactId>-->
+        <!--            <version>4.1.49.Final</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.tomcat</groupId>-->
+        <!--            <artifactId>tomcat-jni</artifactId>-->
+        <!--            <version>9.0.5</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -99,14 +98,30 @@
             <artifactId>log4j-core</artifactId>
             <version>2.23.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.10.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.3</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
-
     <build>
         <plugins>
             <plugin>
@@ -122,7 +137,29 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <parallel>methods</parallel>
+                    <threadCount>10</threadCount>
+<!--                    <includes>
+                        <include>**/Test*.java</include>
+                        <include>**/Test.java</include>
+                        <include>**/TestCase.java</include>
+                    </includes>-->
+                </configuration>
+            </plugin>     
         </plugins>
     </build>
-
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.19.1</version>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
