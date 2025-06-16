@@ -310,29 +310,29 @@ public class ExtProcess {
 
     public long tryGetPid(Process p) {
         long pid = -1;
-
-        try {
-            // for windows
-            if (p.getClass().getName().equals("java.lang.Win32Process")
-                    || p.getClass().getName().equals("java.lang.ProcessImpl")) {
-                Field f = p.getClass().getDeclaredField("handle");
-                f.setAccessible(true);
-                long handl = f.getLong(p);
-                Kernel32 kernel = Kernel32.INSTANCE;
-                WinNT.HANDLE hand = new WinNT.HANDLE();
-                hand.setPointer(Pointer.createConstant(handl));
-                pid = kernel.GetProcessId(hand);
-                f.setAccessible(false);
-            } // for unix based operating systems
-            else if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
-                Field f = p.getClass().getDeclaredField("pid");
-                f.setAccessible(true);
-                pid = f.getLong(p);
-                f.setAccessible(false);
-            }
-        } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
-            pid = -1;
-        }
+        pid = p.pid();
+//        try {
+//            // for windows
+//            if (p.getClass().getName().equals("java.lang.Win32Process")
+//                    || p.getClass().getName().equals("java.lang.ProcessImpl")) {
+//                Field f = p.getClass().getDeclaredField("handle");
+//                f.setAccessible(true);
+//                long handl = f.getLong(p);
+//                Kernel32 kernel = Kernel32.INSTANCE;
+//                WinNT.HANDLE hand = new WinNT.HANDLE();
+//                hand.setPointer(Pointer.createConstant(handl));
+//                pid = kernel.GetProcessId(hand);
+//                f.setAccessible(false);
+//            } // for unix based operating systems
+//            else if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
+//                Field f = p.getClass().getDeclaredField("pid");
+//                f.setAccessible(true);
+//                pid = f.getLong(p);
+//                f.setAccessible(false);
+//            }
+//        } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
+//            pid = -1;
+//        }
 
         return pid;
     }
